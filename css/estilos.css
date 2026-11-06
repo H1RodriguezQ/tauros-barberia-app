@@ -511,3 +511,24 @@ html.sin-mov .scr{transition:none}
 .legal .meta{color:var(--mute);font-size:14px;margin-bottom:28px}
 .legal .aviso{background:var(--brass-soft);border-radius:14px;padding:14px 18px;font-size:14px;color:var(--ink-2)}
 @media (max-width:760px){.mov-hero{position:static;margin:0 auto 18px;display:inline-block}}
+
+/* ===== Menú del celular ===== */
+.menu-btn{display:none;position:relative;width:40px;height:40px;border:0;border-radius:50%;background:transparent;margin-left:4px;flex:none}
+.menu-btn:hover{background:#0000000d}
+.menu-btn span{position:absolute;left:11px;width:18px;height:2px;border-radius:2px;background:var(--ink);transition:transform .3s var(--ease),top .3s var(--ease)}
+.menu-btn span:first-child{top:15px}
+.menu-btn span:last-child{top:23px}
+.nav.abierto .menu-btn span:first-child{top:19px;transform:rotate(45deg)}
+.nav.abierto .menu-btn span:last-child{top:19px;transform:rotate(-45deg)}
+.nav{position:sticky}
+.menu-movil{position:absolute;left:0;right:0;top:100%;background:var(--paper);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid rgba(0,0,0,.08);box-shadow:0 24px 40px -24px #0004;animation:menuIn .32s var(--ease);
+  padding:8px max(20px,env(safe-area-inset-right,0px)) 22px max(20px,env(safe-area-inset-left,0px))}
+@keyframes menuIn{from{transform:translateY(-10px)}}
+.menu-movil nav{display:flex;flex-direction:column}
+.menu-movil a{display:block;padding:14px 4px;font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.02em;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--rule)}
+.menu-movil a:active{color:var(--brass-ink)}
+.menu-movil .btn{margin-top:18px;width:100%;padding:14px}
+.menu-movil a.menu-admin{border:0;font-family:var(--body);font-size:14px;font-weight:500;color:var(--mute);text-align:center;padding-top:14px}
+@media (max-width:760px){.menu-btn{display:block}}
+@media (min-width:761px){.menu-movil{display:none!important}}

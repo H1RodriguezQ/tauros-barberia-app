@@ -137,7 +137,10 @@ function renderC() {
     '<a class="skip" href="#contenido">Saltar al contenido</a>' +
     '<header class="nav gut"><div class="in"><a class="mark" href="#">' + logoSvg + '<b>Tauros</b><span>Barbería</span></a>' +
     '<nav class="links" aria-label="Secciones"><a href="#servicios">Servicios</a><a href="#estilos">Estilos</a><a href="#equipo">Barberos</a><a href="#opiniones">Opiniones</a><a href="#visita">Visítanos</a><a href="/admin" title="Panel de administración">Admin</a></nav>' +
-    '<button class="pill" data-book>Reservar</button></div></header>' +
+    '<button class="pill" data-book>Reservar</button>' +
+    '<button class="menu-btn" id="menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu-movil"><span></span><span></span></button></div>' +
+    '<div class="menu-movil" id="menu-movil" hidden><nav aria-label="Menú"><a href="#servicios">Servicios y precios</a><a href="#estilos">Estilos</a><a href="#equipo">Barberos</a><a href="#opiniones">Opiniones</a><a href="#preguntas">Preguntas frecuentes</a><a href="#visita">Visítanos</a>' +
+    '<button class="btn btn-ink" data-book>Reservar turno</button><a class="menu-admin" href="/admin">Acceso administrador</a></nav></div></header>' +
 
     '<main id="contenido"><section class="hero gut"><div class="in">' + botonMovimiento('mov-hero') +
     '<p class="eyebrow">' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</p>' +
@@ -186,6 +189,19 @@ function renderC() {
     '<footer class="foot-site gut"><div class="in"><span>© ' + new Date().getFullYear() + ' ' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</span><span class="foot-links"><a href="/privacidad">Política de privacidad</a><a href="/admin">Acceso administrador</a>' + botonMovimiento('') + '</span><span>Proyecto académico · Universidad de Santander</span></div></footer>' +
 
     '<div class="mbar" id="mbar"><div><b>' + (nf.nx ? 'Próximo: ' + h12(nf.nx.h) + ' con ' + esc(primerNombre(nf.nx.b)) : 'Reserva para mañana') + '</b>' + (abierto ? 'Abiertos ahora' : 'Cerrado ahora') + '</div><button class="btn btn-ink btn-sm" data-book>Reservar</button></div>';
+
+  /* Menú del celular */
+  var mb = document.getElementById('menu-btn'), mm = document.getElementById('menu-movil');
+  var menu = function (abrir) {
+    mm.hidden = !abrir; mb.setAttribute('aria-expanded', String(abrir));
+    mb.setAttribute('aria-label', abrir ? 'Cerrar menú' : 'Abrir menú');
+    document.querySelector('.nav').classList.toggle('abierto', abrir);
+    if (abrir) { var p = mm.querySelector('a'); if (p) p.focus(); }
+  };
+  mb.onclick = function () { menu(mm.hidden); };
+  mm.addEventListener('click', function (e) { if (e.target.closest('a,button')) menu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !mm.hidden) { menu(false); mb.focus(); } });
+  document.addEventListener('click', function (e) { if (!mm.hidden && !e.target.closest('.nav')) menu(false); });
 
   /* Eventos */
   document.querySelectorAll('[data-book]').forEach(function (x) { x.onclick = function () { abrirReserva(null); }; });
