@@ -41,6 +41,7 @@
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Instalación y despliegue](#instalación-y-despliegue)
 - [Seguridad](#seguridad)
+- [Accesibilidad y animaciones](#accesibilidad-y-animaciones)
 - [Decisiones técnicas y problemas resueltos](#decisiones-técnicas-y-problemas-resueltos)
 - [Pruebas realizadas](#pruebas-realizadas)
 - [Trazabilidad de requisitos](#trazabilidad-de-requisitos)
@@ -98,7 +99,9 @@ Una aplicación web con dos módulos:
 - **Reserva en 5 pasos:** barbero → servicio → día → hora → datos.
   - Horas **libres en verde** y **ocupadas en gris**.
   - Solo se ofrecen horas donde el servicio **cabe completo** (un "Corte + barba" ocupa 60 minutos).
-  - Nombre obligatorio, celular opcional, sin pago ni registro.
+  - Nombre y **celular colombiano obligatorios**, con formato automático (300 123 4567).
+  - **Autorización de tratamiento de datos** antes de confirmar.
+  - Sin pago ni registro.
 - **Comprobante** en pantalla con número de reserva.
 - Diseño **responsive** pensado primero para celular, con barra fija para reservar.
 
@@ -225,7 +228,10 @@ tauros-barberia-app/
 ├── docs/
 │   ├── capturas/       Capturas de pantalla
 │   └── demo-tauros.mp4 Video de demostración
-├── supabase.sql        Tablas, reglas de seguridad, funciones y datos iniciales
+├── privacidad.html     Política de tratamiento de datos (Ley 1581)
+├── supabase.sql        Tablas, reglas de seguridad, funciones y datos iniciales (instalación nueva)
+├── migraciones/
+│   └── 01-seguridad.sql  Actualiza una base ya creada con la versión anterior
 └── vercel.json         URLs limpias (/admin) y cabeceras de seguridad
 ```
 
@@ -256,13 +262,59 @@ Abre la carpeta en Visual Studio Code y usa la extensión **Live Server** sobre 
 
 ## Seguridad
 
-- La clave de `config.js` es la **publishable key**, pública por diseño: en una app sin servidor propio siempre queda visible en el navegador. Lo que protege los datos son las reglas **Row Level Security** de `supabase.sql`.
-- Un visitante solo puede **leer** barberos, sillas, horarios y servicios, y **reservar** a través de la función `reservar_cita`, que valida todo en el servidor.
-- Un visitante **no puede ver** nombres ni teléfonos de otros clientes: para pintar la disponibilidad usa `horas_ocupadas`, que solo devuelve horas.
-- Solo los usuarios de la tabla `admins` pueden modificar datos o ver las citas.
-- El registro público de usuarios está desactivado.
-- Nunca se usa la clave *secret / service_role* en el código.
-- Vercel sirve el sitio por **HTTPS**, con cabeceras `X-Frame-Options`, `X-Content-Type-Options` y `Referrer-Policy`.
+### Base de datos (Supabase)
+- **Row Level Security** en todas las tablas. Un visitante solo puede **leer** barberos, sillas, horarios y servicios.
+- El visitante **no puede ver** nombres ni teléfonos de otros clientes: la disponibilidad se consulta con `horas_ocupadas()`, que solo devuelve horas.
+- Las reservas solo entran por `reservar_cita()`, que **valida todo en el servidor**:
+  - nombre y celular colombiano válido,
+  - autorización de datos,
+  - fecha futura,
+  - barbero activo y horario del barbero,
+  - que no se cruce con otra cita.
+- **Freno contra abuso:**
+  - máximo **2 citas pendientes por celular**,
+  - un bloqueo por número para evitar trampas con dos clics simultáneos,
+  - un límite global de reservas cada 10 minutos.
+- **Doble reserva imposible:** una restricción de exclusión (`citas_sin_cruce`) rechaza en la base de datos dos citas que se crucen.
+- Solo los usuarios de la tabla `admins` pueden modificar datos o ver citas. `es_admin()` no está disponible para visitantes anónimos.
+- Registro público de usuarios **desactivado**. La contraseña del admin exige **mínimo 10 caracteres con mayúsculas, minúsculas y números**, y se puede cambiar desde el panel.
+- La extensión `btree_gist` vive en el esquema `extensions`, no en `public`, como recomienda Supabase.
+
+### Sitio web (Vercel)
+- **HTTPS** obligatorio con **HSTS**.
+- **Content-Security-Policy:** solo se permite cargar código propio, la librería de Supabase y las fuentes de Google. Se bloquean iframes, objetos y formularios hacia otros sitios.
+- **Subresource Integrity (SRI):** la librería `supabase-js` se carga con su huella `sha384`. Si el CDN la alterara, el navegador no la ejecutaría.
+- Cabeceras `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y `Cross-Origin-Opener-Policy`.
+- El panel `/admin` va con `noindex` (no aparece en Google) y `no-store` (no se guarda en caché).
+- Todo texto que viene de la base de datos se **escapa** antes de mostrarse, como protección contra XSS. No hay JavaScript en línea.
+- La clave de `config.js` es la **publishable key**, pública por diseño. Nunca se usa la clave *secret / service_role* en el código.
+
+### Datos personales (Ley 1581 de 2012)
+- Antes de reservar, el cliente marca una **casilla de autorización** que enlaza a la [política de privacidad](https://tauros-barberia-app.vercel.app/privacidad). Se guarda la fecha y hora de la autorización.
+- Solo se piden **nombre y celular**, lo mínimo necesario.
+- La política explica la finalidad, los derechos del titular (conocer, actualizar, rectificar, suprimir, revocar), el canal para ejercerlos y el tiempo de conservación.
+
+### Análisis de seguridad de Supabase
+| Aviso | Estado |
+|---|---|
+| Extensión en el esquema público | ✅ Corregido |
+| `es_admin()` ejecutable por anónimos | ✅ Corregido |
+| `reservar_cita()` y `horas_ocupadas()` son `SECURITY DEFINER` | ℹ️ **Intencional:** son la única puerta controlada del visitante; validan todo y no exponen datos personales |
+| Protección contra contraseñas filtradas (HaveIBeenPwned) | ⚠️ Solo disponible en el plan Pro de Supabase |
+
+**Recomendado para producción real:** plan Pro de Supabase (contraseñas filtradas y copias de seguridad diarias), autenticación de dos factores para el administrador y CAPTCHA en el formulario de reserva.
+
+## Accesibilidad y animaciones
+
+Siguiendo las pautas **WCAG 2.2**:
+- **2.2.2 Pausar, detener, ocultar:** botón **"Pausar animaciones"** en la portada y en el pie de página. Detiene todo lo que se mueve solo (lámpara, destellos, indicador en vivo) y se recuerda en el navegador.
+- **2.3.3 Animación por interacción:** si el sistema tiene activado *reducir movimiento*, se desactivan las animaciones, el efecto de profundidad al hacer scroll, el desplazamiento suave y el confeti.
+- **2.3.1 Destellos:** ninguna animación parpadea más de 3 veces por segundo.
+- Las animaciones usan solo `transform` y `opacity` (no mueven el resto de la página), duran entre 0,2 y 1 segundo, y **el contenido es visible aunque no se animen**.
+- **2.4.1 Saltar bloques:** enlace "Saltar al contenido" con la tecla Tab.
+- **2.1.2 y 2.4.3 Foco:** en las ventanas de reserva y del panel, el foco del teclado queda dentro de la ventana, avanza al contenido de cada paso y vuelve al botón de origen al cerrar. Se cierra con Esc.
+- **Formularios:** etiquetas visibles, campos obligatorios marcados, errores anunciados al lector de pantalla (`aria-live`) y campos con error resaltados (`aria-invalid`).
+- Contraste alto, foco visible y botones de al menos 40 px en el celular.
 
 ## Decisiones técnicas y problemas resueltos
 
@@ -284,6 +336,14 @@ Abre la carpeta en Visual Studio Code y usa la extensión **Live Server** sobre 
 | Reservar con un barbero desactivado | Rechazada con `BARBERO_NO_DISPONIBLE` | ✅ |
 | Reservar en una fecha u hora pasada | Rechazada con `FECHA_INVALIDA` | ✅ |
 | Confirmar sin nombre | Mensaje de validación en el formulario | ✅ |
+| Celular inválido o vacío | `CONTACTO_INVALIDO` y mensaje en el campo | ✅ |
+| Reservar sin marcar la autorización de datos | `AUTORIZACION_REQUERIDA` | ✅ |
+| Tercera cita pendiente con el mismo celular | `LIMITE_RESERVAS` | ✅ |
+| Visitante anónimo llama `es_admin()` | Permiso denegado | ✅ |
+| Librería de Supabase alterada en el CDN | El navegador no la ejecuta (SRI) | ✅ |
+| Sitio publicado bajo la CSP | Sin bloqueos ni errores en consola; tiempo real funciona | ✅ |
+| Pausar animaciones / *reducir movimiento* del sistema | Animaciones detenidas | ✅ |
+| Navegación solo con teclado en la reserva | El foco no se escapa de la ventana | ✅ |
 | Visitante intenta ver las citas de otros | No ve ninguna | ✅ |
 | Visitante intenta modificar un barbero | No cambia nada | ✅ |
 | Login con contraseña incorrecta | Mensaje "Correo o contraseña incorrectos" | ✅ |
@@ -312,7 +372,7 @@ Abre la carpeta en Visual Studio Code y usa la extensión **Live Server** sobre 
 | RNF-02 Responsive | Diseño pensado primero para celular |
 | RNF-03 Rendimiento | Sin frameworks ni compilación; carga directa |
 | RNF-04 Disponibilidad | Vercel + Supabase |
-| RNF-05 Seguridad | HTTPS + RLS + Auth |
+| RNF-05 Seguridad | HTTPS + HSTS + CSP + SRI + RLS + Auth + límites anti-abuso + Ley 1581 |
 | RNF-06 Mantenibilidad | Código separado por archivos y comentado |
 | RNF-07 Compatibilidad | Chrome, Edge, Firefox y Safari actuales |
 | RNF-08 Escalabilidad | Sillas, barberos y servicios se agregan desde el panel, sin tocar código |
