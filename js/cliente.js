@@ -134,7 +134,7 @@ function renderC() {
 
   document.getElementById('app').innerHTML =
     '<header class="nav gut"><div class="in"><a class="mark" href="#">' + logoSvg + '<b>Tauros</b><span>Barbería</span></a>' +
-    '<nav class="links" aria-label="Secciones"><a href="#servicios">Servicios</a><a href="#estilos">Estilos</a><a href="#equipo">Barberos</a><a href="#opiniones">Opiniones</a><a href="#visita">Visítanos</a></nav>' +
+    '<nav class="links" aria-label="Secciones"><a href="#servicios">Servicios</a><a href="#estilos">Estilos</a><a href="#equipo">Barberos</a><a href="#opiniones">Opiniones</a><a href="#visita">Visítanos</a><a href="/admin" title="Panel de administración">Admin</a></nav>' +
     '<button class="pill" data-book>Reservar</button></div></header>' +
 
     '<main><section class="hero gut"><div class="in">' +
@@ -181,7 +181,7 @@ function renderC() {
     '<section class="final gut"><div class="in"><h2 class="h-big">Tu silla está lista.</h2><p class="h-sub" style="margin:0 auto">' + (nf.nx ? 'Quedan ' + nf.tot + ' turnos hoy. El próximo es a las ' + h12(nf.nx.h) + '.' : 'Hoy ya cerramos la agenda. Aparta tu turno para mañana.') + '</p>' +
     '<button class="btn btn-brass" data-book>Reservar turno</button></div></section></main>' +
 
-    '<footer class="foot-site gut"><div class="in"><span>© ' + new Date().getFullYear() + ' ' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</span><span>Proyecto académico · Universidad de Santander</span></div></footer>' +
+    '<footer class="foot-site gut"><div class="in"><span>© ' + new Date().getFullYear() + ' ' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</span><span>Proyecto académico · Universidad de Santander · <a class="lnk" href="/admin" style="color:inherit">Acceso administrador</a></span></div></footer>' +
 
     '<div class="mbar" id="mbar"><div><b>' + (nf.nx ? 'Próximo: ' + h12(nf.nx.h) + ' con ' + esc(primerNombre(nf.nx.b)) : 'Reserva para mañana') + '</b>' + (abierto ? 'Abiertos ahora' : 'Cerrado ahora') + '</div><button class="btn btn-ink btn-sm" data-book>Reservar</button></div>';
 
