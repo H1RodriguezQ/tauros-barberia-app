@@ -284,7 +284,7 @@ Abre la carpeta en Visual Studio Code y usa la extensión **Live Server** sobre 
 
 ### Sitio web (Vercel)
 - **HTTPS** obligatorio con **HSTS**.
-- **Content-Security-Policy:** solo se permite cargar código propio, la librería de Supabase, las fuentes de Google y el mapa de Google Maps (único iframe permitido, y solo se carga si el usuario toca «Ver mapa»). Se bloquean objetos y formularios hacia otros sitios.
+- **Content-Security-Policy:** solo se permite cargar código propio, la librería de Supabase, las fuentes de Google y el mapa de Google Maps (maps.google.com; único iframe permitido, y solo se carga si el usuario toca «Ver mapa»). Se bloquean objetos y formularios hacia otros sitios.
 - **Subresource Integrity (SRI):** la librería `supabase-js` se carga con su huella `sha384`. Si el CDN la alterara, el navegador no la ejecutaría.
 - Cabeceras `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy` y `Cross-Origin-Opener-Policy`.
 - El panel `/admin` va con `noindex` (no aparece en Google) y `no-store` (no se guarda en caché).

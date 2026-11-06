@@ -212,7 +212,7 @@ function renderC() {
   var vm = document.getElementById('ver-mapa');
   if (vm) vm.addEventListener('click', function () {
     var box = document.getElementById('mapa'), f = document.createElement('iframe');
-    f.src = 'https://www.google.com/maps?q=' + encodeURIComponent(NEGOCIO.mapa) + '&output=embed';
+    f.src = 'https://maps.google.com/maps?q=' + encodeURIComponent(NEGOCIO.mapa) + '&z=16&hl=es&output=embed';
     f.title = 'Mapa: ' + NEGOCIO.mapa; f.loading = 'lazy'; f.referrerPolicy = 'no-referrer-when-downgrade';
     box.classList.add('abierto'); box.querySelector('.mapa-ph').replaceWith(f); vm.remove(); f.focus();
   });
