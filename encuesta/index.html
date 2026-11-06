@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Encuesta · Tauros Barbería</title>
+<meta name="description" content="Cuéntanos qué te pareció el sitio de Tauros Barbería. Toma 30 segundos y es anónimo.">
+<meta name="theme-color" content="#0b0b12">
+<link rel="icon" href="/img/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/encuesta/encuesta.css">
+</head>
+<body>
+<main class="wrap" id="app">
+  <header>
+    <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#16161f" stroke="#c8962a"/><path d="M9 14c4 0 7 2 8.5 6 1.5-4.5 4-7 6.5-7s5 2.5 6.5 7c1.5-4 4.5-6 8.5-6-1 6-4.5 9-8.5 10v4c0 6-3.5 9.5-6.5 11-3-1.5-6.5-5-6.5-11v-4C13.5 23 10 20 9 14z" fill="#c8962a"/></svg>
+    <b>Tauros</b><span>Encuesta</span>
+    <a href="/encuesta/resultados">Ver resultados</a>
+  </header>
+
+  <h1>¿Qué te pareció <em>el sitio?</em></h1>
+  <p class="intro">Tu opinión nos ayuda a mejorar. Son 30 segundos y es anónima: no pedimos nombre ni celular.</p>
+
+  <form id="f" novalidate>
+    <fieldset>
+      <legend>Califica el sitio web <small>De 1 a 5 estrellas</small></legend>
+      <div class="opts stars" id="estrellas">
+        <label><input type="radio" name="calificacion" value="1" aria-label="1 estrella"><span aria-hidden="true">★</span></label>
+        <label><input type="radio" name="calificacion" value="2" aria-label="2 estrellas"><span aria-hidden="true">★</span></label>
+        <label><input type="radio" name="calificacion" value="3" aria-label="3 estrellas"><span aria-hidden="true">★</span></label>
+        <label><input type="radio" name="calificacion" value="4" aria-label="4 estrellas"><span aria-hidden="true">★</span></label>
+        <label><input type="radio" name="calificacion" value="5" aria-label="5 estrellas"><span aria-hidden="true">★</span></label>
+      </div>
+      <p class="err" id="e-calificacion" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>¿Qué tan fácil fue usarlo? <small>1 = muy difícil · 5 = muy fácil</small></legend>
+      <div class="opts escala">
+        <label><input type="radio" name="facilidad" value="1"><span>1<small>Difícil</small></span></label>
+        <label><input type="radio" name="facilidad" value="2"><span>2<small>&nbsp;</small></span></label>
+        <label><input type="radio" name="facilidad" value="3"><span>3<small>Normal</small></span></label>
+        <label><input type="radio" name="facilidad" value="4"><span>4<small>&nbsp;</small></span></label>
+        <label><input type="radio" name="facilidad" value="5"><span>5<small>Fácil</small></span></label>
+      </div>
+      <p class="err" id="e-facilidad" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>¿Lo usarías para reservar en tu barbería?</legend>
+      <div class="opts tres">
+        <label><input type="radio" name="usaria" value="si"><span>Sí</span></label>
+        <label><input type="radio" name="usaria" value="tal_vez"><span>Tal vez</span></label>
+        <label><input type="radio" name="usaria" value="no"><span>No</span></label>
+      </div>
+      <p class="err" id="e-usaria" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>¿Qué te gustó más? <small>Puedes elegir varias (opcional)</small></legend>
+      <div class="opts">
+        <label><input type="checkbox" name="gusto" value="diseno"><span>Diseño</span></label>
+        <label><input type="checkbox" name="gusto" value="rapidez"><span>Rapidez para reservar</span></label>
+        <label><input type="checkbox" name="gusto" value="facilidad"><span>Facilidad de uso</span></label>
+        <label><input type="checkbox" name="gusto" value="celular"><span>Se ve bien en el celular</span></label>
+        <label><input type="checkbox" name="gusto" value="seguridad"><span>Seguridad</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><label for="comentario">¿Algo que mejorarías?</label> <small>Opcional · máximo 300 caracteres</small></legend>
+      <textarea id="comentario" name="comentario" maxlength="300" placeholder="Escribe aquí tu comentario…"></textarea>
+      <div class="cont"><span id="cuenta">0</span>/300</div>
+    </fieldset>
+
+    <p class="err" id="e-general" role="alert"></p>
+    <button class="btn btn-gold enviar" type="submit" id="enviar">Enviar opinión</button>
+    <p class="nota">Respuesta anónima. Proyecto académico · Universidad de Santander.</p>
+  </form>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
+<script src="/js/config.js"></script>
+<script src="/encuesta/encuesta.js"></script>
+</body>
+</html>
