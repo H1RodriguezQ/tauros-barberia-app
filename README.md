@@ -87,7 +87,7 @@ Una aplicación web con dos módulos:
 |---|---|
 | ![Barberos admin](docs/capturas/08-admin-barberos.png) | ![Horarios](docs/capturas/09-admin-horarios.png) |
 
-🎬 **Video de demostración (3:29):** [`docs/demo-tauros.mp4`](docs/demo-tauros.mp4)
+🎬 **Video de demostración (4:17, Full HD):** [`docs/demo-tauros.mp4`](docs/demo-tauros.mp4)
 
 ## Funcionalidades
 
