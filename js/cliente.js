@@ -125,7 +125,8 @@ function renderC() {
     ['¿Y si no puedo llegar?', 'Llámanos o escríbenos al ' + N.telefono + ' y liberamos el turno sin costo. Así otro cliente lo puede aprovechar.'],
     ['¿Qué pasa si llego tarde?', 'Te esperamos hasta ' + N.minutosTolerancia + ' minutos. Después, tu barbero puede atender al siguiente y te buscamos otro turno el mismo día si hay.'],
     ['¿Atienden niños?', 'Sí. El corte para niño es hasta los 12 años.'],
-    ['¿Necesito crear una cuenta?', 'No. Solo tu nombre y, si quieres, tu celular para avisarte si hay que mover la cita.']];
+    ['¿Necesito crear una cuenta?', 'No. Solo tu nombre y tu celular, que usamos únicamente para avisarte si hay que mover la cita.'],
+    ['¿Qué hacen con mis datos?', 'Solo los usamos para gestionar tu cita, nunca los compartimos ni los vendemos, y puedes pedir que los borremos cuando quieras. Lee la política de privacidad completa en /privacidad.']];
   var hrs = [[1, 'Lunes a viernes', '9:00 am – 7:00 pm'], [6, 'Sábado', '8:00 am – 2:00 pm'], [0, 'Domingo', 'Cerrado']].map(function (r) {
     var on = (r[0] === 1 && dow >= 1 && dow <= 5) || r[0] === dow; return '<tr class="' + (on ? 'now' : '') + '"><td>' + r[1] + (on ? ' · hoy' : '') + '</td><td>' + r[2] + '</td></tr>';
   }).join('');
@@ -133,11 +134,12 @@ function renderC() {
     '<div><b>' + N.calificacion + ' <span class="st">★</span></b><span>' + N.numOpiniones + ' opiniones en Google</span></div><div><b>' + N.cortesAlAnio + '</b><span>cortes al año</span></div><div><b>' + N.aniosEnElBarrio + ' años</b><span>en el centro</span></div><div><b>1 min</b><span>para reservar</span></div></div></section>' : '';
 
   document.getElementById('app').innerHTML =
+    '<a class="skip" href="#contenido">Saltar al contenido</a>' +
     '<header class="nav gut"><div class="in"><a class="mark" href="#">' + logoSvg + '<b>Tauros</b><span>Barbería</span></a>' +
     '<nav class="links" aria-label="Secciones"><a href="#servicios">Servicios</a><a href="#estilos">Estilos</a><a href="#equipo">Barberos</a><a href="#opiniones">Opiniones</a><a href="#visita">Visítanos</a><a href="/admin" title="Panel de administración">Admin</a></nav>' +
     '<button class="pill" data-book>Reservar</button></div></header>' +
 
-    '<main><section class="hero gut"><div class="in">' +
+    '<main id="contenido"><section class="hero gut"><div class="in">' + botonMovimiento('mov-hero') +
     '<p class="eyebrow">' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</p>' +
     '<h1>Tu mejor corte. <span class="grad">Sin hacer fila.</span></h1>' +
     '<p class="sub">Escoge barbero, servicio y hora en menos de un minuto. Llegas, te sientas y listo.</p>' +
@@ -181,7 +183,7 @@ function renderC() {
     '<section class="final gut"><div class="in"><h2 class="h-big">Tu silla está lista.</h2><p class="h-sub" style="margin:0 auto">' + (nf.nx ? 'Quedan ' + nf.tot + ' turnos hoy. El próximo es a las ' + h12(nf.nx.h) + '.' : 'Hoy ya cerramos la agenda. Aparta tu turno para mañana.') + '</p>' +
     '<button class="btn btn-brass" data-book>Reservar turno</button></div></section></main>' +
 
-    '<footer class="foot-site gut"><div class="in"><span>© ' + new Date().getFullYear() + ' ' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</span><span>Proyecto académico · Universidad de Santander · <a class="lnk" href="/admin" style="color:inherit">Acceso administrador</a></span></div></footer>' +
+    '<footer class="foot-site gut"><div class="in"><span>© ' + new Date().getFullYear() + ' ' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</span><span class="foot-links"><a href="/privacidad">Política de privacidad</a><a href="/admin">Acceso administrador</a>' + botonMovimiento('') + '</span><span>Proyecto académico · Universidad de Santander</span></div></footer>' +
 
     '<div class="mbar" id="mbar"><div><b>' + (nf.nx ? 'Próximo: ' + h12(nf.nx.h) + ' con ' + esc(primerNombre(nf.nx.b)) : 'Reserva para mañana') + '</b>' + (abierto ? 'Abiertos ahora' : 'Cerrado ahora') + '</div><button class="btn btn-ink btn-sm" data-book>Reservar</button></div>';
 
@@ -196,16 +198,17 @@ function renderC() {
     };
   });
   bindSvc();
+  enlazarMovimiento();
   document.querySelectorAll('.fchip').forEach(function (f) { f.onclick = function () { GCAT = f.dataset.g; drawGallery(); document.getElementById('gal').scrollTo({ left: 0 }); }; });
   drawGallery();
   var gal = document.getElementById('gal');
-  document.getElementById('gl').onclick = function () { gal.scrollBy({ left: -310, behavior: 'smooth' }); };
-  document.getElementById('gr').onclick = function () { gal.scrollBy({ left: 310, behavior: 'smooth' }); };
+  document.getElementById('gl').onclick = function () { gal.scrollBy({ left: -310, behavior: menosMovimiento() ? 'auto' : 'smooth' }); };
+  document.getElementById('gr').onclick = function () { gal.scrollBy({ left: 310, behavior: menosMovimiento() ? 'auto' : 'smooth' }); };
   document.querySelectorAll('#app a[href^="#"]').forEach(function (a) {
     a.onclick = function (e) {
       var id = a.getAttribute('href'); e.preventDefault();
-      if (id === '#') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-      var t = document.querySelector(id); if (t) t.scrollIntoView({ behavior: 'smooth' });
+      if (id === '#') { window.scrollTo({ top: 0, behavior: menosMovimiento() ? 'auto' : 'smooth' }); return; }
+      var t = document.querySelector(id); if (t) desplazar(t);
     };
   });
 
@@ -224,7 +227,7 @@ function renderC() {
 /* Efectos de scroll: la silla crece un poco y la barra móvil aparece después del hero */
 window.addEventListener('scroll', function () {
   var y = window.scrollY, h = document.getElementById('hart'), mb = document.getElementById('mbar');
-  if (h) h.style.transform = 'translateY(' + (y * -0.06) + 'px) scale(' + (1 + Math.min(y, 600) / 6000) + ')';
+  if (h) h.style.transform = menosMovimiento() ? '' : 'translateY(' + (y * -0.06) + 'px) scale(' + (1 + Math.min(y, 600) / 6000) + ')';
   if (mb) mb.classList.toggle('show', y > 520);
 }, { passive: true });
 
@@ -236,11 +239,11 @@ var st = null;
 var PASOS = ['Barbero', 'Servicio', 'Día y hora', 'Tus datos', 'Listo'];
 
 function abrirReserva(bid, svId) {
-  st = { bid: bid || null, step: bid ? 1 : 0, sv: svId || null, fecha: null, hora: null, nombre: '', tel: '', error: '', cita: null, cargando: false, enviando: false, last: null };
+  st = { bid: bid || null, step: bid ? 1 : 0, sv: svId || null, fecha: null, hora: null, nombre: '', tel: '', acepta: false, error: '', cita: null, cargando: false, enviando: false, last: null, recienAbierto: true, origen: document.activeElement };
   document.body.style.overflow = 'hidden';
   dibujar();
 }
-function cerrarReserva() { st = null; document.getElementById('layer').innerHTML = ''; document.body.style.overflow = ''; }
+function cerrarReserva() { var o = st && st.origen; st = null; document.getElementById('layer').innerHTML = ''; document.body.style.overflow = ''; if (o && document.body.contains(o)) o.focus({ preventScroll: true }); }
 
 /* Primer día con horario desde hoy (en los próximos 14 días) */
 function diasDisponibles(bid) {
@@ -262,12 +265,16 @@ async function elegirDia(f) {
 
 async function confirmar() {
   var q = function (i) { return document.getElementById(i); };
-  st.nombre = q('f-n').value.trim(); st.tel = q('f-t').value.trim();
-  if (st.nombre.length < 2) { q('e-n').textContent = 'Escribe tu nombre para apartar el turno.'; q('f-n').focus(); return; }
-  if (st.tel && !/^[0-9 +()-]{7,20}$/.test(st.tel)) { q('e-t').textContent = 'Revisa el número: solo números y espacios.'; q('f-t').focus(); return; }
+  st.nombre = q('f-n').value.trim(); st.tel = q('f-t').value.trim(); st.acepta = q('f-a').checked;
+  ['e-n', 'e-t', 'e-a'].forEach(function (i) { q(i).textContent = ''; });
+  ['f-n', 'f-t', 'f-a'].forEach(function (i) { q(i).removeAttribute('aria-invalid'); });
+  var mal = function (campo, err, msg) { q(err).textContent = msg; q(campo).setAttribute('aria-invalid', 'true'); q(campo).focus(); };
+  if (st.nombre.length < 2 || !/[A-Za-zÁÉÍÓÚÑáéíóúñ]/.test(st.nombre)) { mal('f-n', 'e-n', 'Escribe tu nombre para apartar el turno.'); return; }
+  if (!celularValido(st.tel)) { mal('f-t', 'e-t', 'Escribe un celular de 10 dígitos que empiece por 3. Ej: 300 123 4567'); return; }
+  if (!st.acepta) { mal('f-a', 'e-a', 'Debes autorizar el uso de tus datos para reservar.'); return; }
   st.enviando = true; dibujar();
   try {
-    st.cita = await reservar(st.bid, st.sv, st.fecha, st.hora, st.nombre, st.tel);
+    st.cita = await reservar(st.bid, st.sv, st.fecha, st.hora, st.nombre, normalizarCelular(st.tel), st.acepta);
     st.cita.cliente_nombre = st.nombre;
     st.step = 4;
   } catch (e) {
@@ -278,6 +285,7 @@ async function confirmar() {
       try { await cargarOcupadas(st.bid, st.fecha, true); } catch (x) { /* se mostrará igual el mensaje */ }
     }
     if (cod === 'BARBERO_NO_DISPONIBLE') { await cargarCatalogo(); st.bid = null; st.step = 0; }
+    if (cod === 'AUTORIZACION_REQUERIDA') st.acepta = false;
   }
   if (st) { st.enviando = false; dibujar(); }
 }
@@ -325,8 +333,9 @@ function dibujar() {
   } else if (st.step === 3) {
     body = '<dl class="recap"><dt>Servicio</dt><dd>' + esc(sv.nombre) + '</dd><dt>Barbero</dt><dd>' + esc(b.nombre) + '</dd><dt>Día</dt><dd>' + fl(st.fecha) + '</dd><dt>Hora</dt><dd>' + h12(st.hora) + '</dd><dt>Precio</dt><dd>' + cop(sv.precio) + '</dd></dl>';
     if (st.error) body += '<div class="alert" role="alert">' + st.error + '</div>';
-    body += '<div class="field"><label for="f-n">¿Cómo te llamas?</label><input id="f-n" autocomplete="name" maxlength="80" value="' + esc(st.nombre) + '" placeholder="Tu nombre"><span class="err" id="e-n"></span></div>' +
-      '<div class="field"><label for="f-t">Celular <small>(opcional)</small></label><input id="f-t" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" value="' + esc(st.tel) + '" placeholder="300 123 4567"><span class="err" id="e-t"></span><span class="hint">Solo te escribimos si hay que mover tu turno.</span></div>' +
+    body += '<div class="field"><label for="f-n">¿Cómo te llamas?</label><input id="f-n" autocomplete="name" maxlength="80" required aria-describedby="e-n" value="' + esc(st.nombre) + '" placeholder="Tu nombre"><span class="err" id="e-n" aria-live="polite"></span></div>' +
+      '<div class="field"><label for="f-t">Celular</label><input id="f-t" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" required aria-describedby="h-t e-t" value="' + esc(st.tel) + '" placeholder="300 123 4567"><span class="err" id="e-t" aria-live="polite"></span><span class="hint" id="h-t">Solo lo usamos para confirmarte o avisarte si hay que mover tu turno.</span></div>' +
+      '<label class="consent"><input type="checkbox" id="f-a" required ' + (st.acepta ? 'checked' : '') + ' aria-describedby="e-a"><span>Autorizo a ' + esc(NEGOCIO.nombre) + ' a usar mi nombre y celular solo para gestionar esta cita, según la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a> (Ley 1581 de 2012).</span></label><span class="err" id="e-a" aria-live="polite"></span>' +
       '<div class="trust"><span>Sin pago por adelantado</span><span>Cancelas gratis</span></div>';
     foot = '<button class="btn btn-line" id="k-b3">Atrás</button><button class="btn btn-brass' + (st.enviando ? ' busy' : '') + '" id="k-ok">' + (st.enviando ? 'Reservando…' : 'Confirmar reserva') + '</button>';
   } else {
@@ -342,7 +351,7 @@ function dibujar() {
 
   document.getElementById('layer').innerHTML = '<div class="scrim" id="scr"><aside class="sheet" role="dialog" aria-modal="true" aria-label="Reservar turno">' + top +
     '<div class="prog">' + PASOS.map(function (t, i) { return '<span class="' + (i <= st.step ? 'on' : '') + '"></span>'; }).join('') + '</div>' +
-    '<div class="prog-l">Paso ' + (st.step + 1) + ' de 5 · <b>' + PASOS[st.step] + '</b></div>' +
+    '<div class="prog-l" aria-live="polite">Paso ' + (st.step + 1) + ' de 5 · <b>' + PASOS[st.step] + '</b></div>' +
     '<div class="sh-body ' + dir + '">' + body + '</div>' + (foot ? '<div class="sh-foot">' + foot + '</div>' : '') + '</aside></div>';
 
   /* Eventos del panel */
@@ -361,12 +370,24 @@ function dibujar() {
   };
   if (q('k-b2')) q('k-b2').onclick = function () { st.step = 1; st.error = ''; dibujar(); };
   if (q('k-n2')) q('k-n2').onclick = function () { st.step = 3; st.error = ''; dibujar(); setTimeout(function () { q('f-n') && q('f-n').focus(); }, 0); };
-  if (q('k-b3')) q('k-b3').onclick = function () { st.nombre = q('f-n').value; st.tel = q('f-t').value; st.step = 2; dibujar(); };
+  if (q('k-b3')) q('k-b3').onclick = function () { st.nombre = q('f-n').value; st.tel = q('f-t').value; st.acepta = q('f-a').checked; st.step = 2; dibujar(); };
+  /* Formato del celular mientras se escribe: 300 123 4567 */
+  if (q('f-t')) q('f-t').addEventListener('input', function (e) { var v = formatoCelular(e.target.value); if (v !== e.target.value) e.target.value = v; });
   if (q('k-ok')) q('k-ok').onclick = confirmar;
   if (q('k-d')) q('k-d').onclick = async function () { cerrarReserva(); try { await cargarOcupacionHoy(); } catch (e) { } renderC(); };
   if (celebrar) confetti(document.querySelector('.sheet'));
+  /* Foco: al cambiar de paso, el teclado y el lector de pantalla arrancan en el contenido nuevo */
+  if (dir || st.recienAbierto) {
+    st.recienAbierto = false;
+    var objetivo = document.querySelector('.sh-body .alert') || document.querySelector('.sh-body .lbl') || document.querySelector('.sh-body .receipt') || q('k-c');
+    if (objetivo) { if (!objetivo.matches('button,input,a')) objetivo.setAttribute('tabindex', '-1'); objetivo.focus({ preventScroll: true }); }
+  }
 }
-document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && st) cerrarReserva(); });
+document.addEventListener('keydown', function (e) {
+  if (!st) return;
+  if (e.key === 'Escape') cerrarReserva();
+  else atraparFoco(document.querySelector('.sheet'), e);
+});
 
 /* =====================================================================
    ARRANQUE
@@ -381,7 +402,8 @@ async function iniciar() {
     console.error(e);
     app.innerHTML = '<div class="fatal"><div>' + logoSvg.replace('<svg ', '<svg style="width:56px;height:56px" ') +
       '<h1>No pudimos cargar la agenda</h1><p>Revisa tu conexión a internet e intenta de nuevo. Si el problema sigue, llámanos al ' + esc(NEGOCIO.telefono) + '.</p>' +
-      '<button class="btn btn-ink" onclick="location.reload()">Intentar de nuevo</button></div></div>';
+      '<button class="btn btn-ink" id="reintentar">Intentar de nuevo</button></div></div>';
+    document.getElementById('reintentar').onclick = function () { location.reload(); };
   }
 }
 /* Refresca los turnos libres cuando el cliente vuelve a la pestaña */

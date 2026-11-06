@@ -480,3 +480,34 @@ table.t{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
 .row-acts{display:flex;gap:10px;align-items:center}
 .live-pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
 
+
+/* ===== Accesibilidad y formularios (v2) ===== */
+/* Enlace para saltar al contenido con el teclado (WCAG 2.4.1) */
+.skip{position:absolute;left:16px;top:-60px;z-index:100;background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:600;transition:top .2s}
+.skip:focus{top:calc(12px + env(safe-area-inset-top,0px))}
+/* Autorización de datos */
+.consent{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:14px;color:var(--ink-2);line-height:1.45;cursor:pointer}
+.consent input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--ink)}
+.consent a{color:var(--brass-ink)}
+[aria-invalid="true"]{border-color:var(--red)!important;box-shadow:0 0 0 3px #b3261e22!important}
+/* Botón para pausar animaciones (WCAG 2.2.2) */
+.mov-btn{border:1px solid var(--rule);background:transparent;color:var(--mute);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:500}
+.mov-btn:hover{color:var(--ink);border-color:var(--ink)}
+.mov-hero{position:absolute;right:0;top:18px;z-index:2;border-color:#ffffff30;color:#c7c7cc;background:#ffffff0d}
+.mov-hero:hover{color:#fff;border-color:#ffffff80}
+.foot-links{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.foot-links a{color:var(--mute);text-decoration:none}
+.foot-links a:hover{color:var(--ink);text-decoration:underline}
+/* Animaciones pausadas por el usuario: todo queda quieto y en su sitio final */
+html.sin-mov *,html.sin-mov *::before,html.sin-mov *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;animation-delay:0s!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+html.sin-mov{scroll-behavior:auto}
+html.sin-mov .reveal{transform:none}
+html.sin-mov .scr{transition:none}
+/* Página de privacidad */
+.legal{max-width:760px;margin:0 auto;padding-block:56px 80px}
+.legal h1{font-family:var(--serif);font-size:clamp(34px,5vw,48px);letter-spacing:-.03em;line-height:1.08;margin:0 0 8px}
+.legal h2{font-family:var(--serif);font-size:22px;letter-spacing:-.02em;margin:34px 0 8px}
+.legal p,.legal li{color:var(--ink-2);font-size:16px;line-height:1.6}
+.legal .meta{color:var(--mute);font-size:14px;margin-bottom:28px}
+.legal .aviso{background:var(--brass-soft);border-radius:14px;padding:14px 18px;font-size:14px;color:var(--ink-2)}
+@media (max-width:760px){.mov-hero{position:static;margin:0 auto 18px;display:inline-block}}

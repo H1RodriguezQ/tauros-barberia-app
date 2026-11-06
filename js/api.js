@@ -94,17 +94,21 @@ var ERRORES = {
   FUERA_DE_HORARIO: 'Ese servicio no alcanza a terminar antes de que el barbero salga. Elige una hora más temprano.',
   FECHA_INVALIDA: 'Esa hora ya pasó. Elige otra.',
   SERVICIO_NO_DISPONIBLE: 'Ese servicio ya no está disponible.',
-  NOMBRE_INVALIDO: 'Escribe tu nombre para apartar el turno.'
+  NOMBRE_INVALIDO: 'Escribe tu nombre para apartar el turno.',
+  CONTACTO_INVALIDO: 'Escribe un celular colombiano válido de 10 dígitos que empiece por 3.',
+  AUTORIZACION_REQUERIDA: 'Para reservar necesitamos que autorices el uso de tus datos.',
+  LIMITE_RESERVAS: 'Ya tienes 2 citas pendientes con este celular. Si necesitas otra, llámanos.',
+  DEMASIADAS_SOLICITUDES: 'Estamos recibiendo muchas reservas en este momento. Intenta de nuevo en unos minutos.'
 };
 function codigoError(e) {
   var msg = (e && (e.message || e.details)) || '';
   return Object.keys(ERRORES).find(function (k) { return msg.indexOf(k) > -1; }) || null;
 }
 
-async function reservar(bid, servicioId, fecha, hora, nombre, contacto) {
+async function reservar(bid, servicioId, fecha, hora, nombre, contacto, acepta) {
   var r = await sb.rpc('reservar_cita', {
     p_barbero: bid, p_servicio: servicioId, p_fecha: fecha, p_hora: hora,
-    p_nombre: nombre, p_contacto: contacto || null
+    p_nombre: nombre, p_contacto: contacto, p_acepta: acepta === true
   });
   if (r.error) throw r.error;
   var c = r.data[0];
@@ -124,6 +128,22 @@ async function entrar(correo, clave) {
 }
 async function esAdmin() { var a = await sb.rpc('es_admin'); return !a.error && a.data === true; }
 async function salir() { await sb.auth.signOut(); }
+async function cambiarClave(nueva) {
+  var r = await sb.auth.updateUser({ password: nueva });
+  if (r.error) throw r.error;
+}
+
+/* Celular colombiano: deja solo dígitos y quita el +57 */
+function normalizarCelular(t) {
+  var d = String(t || '').replace(/\D/g, '');
+  if (d.length === 12 && d.indexOf('57') === 0) d = d.slice(2);
+  return d;
+}
+function celularValido(t) { return /^3\d{9}$/.test(normalizarCelular(t)); }
+function formatoCelular(t) {
+  var d = normalizarCelular(t).slice(0, 10);
+  return d.length > 6 ? d.slice(0, 3) + ' ' + d.slice(3, 6) + ' ' + d.slice(6) : d.length > 3 ? d.slice(0, 3) + ' ' + d.slice(3) : d;
+}
 
 async function citasDelDia(fecha) {
   var r = await sb.from('citas').select('*').eq('fecha', fecha).order('hora_inicio');

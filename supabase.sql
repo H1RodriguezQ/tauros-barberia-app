@@ -11,13 +11,17 @@
 --  (¡ojo! también borra las citas que existan).
 -- =====================================================================
 
--- Necesaria para la regla anti doble reserva (rangos de tiempo por barbero)
-create extension if not exists btree_gist;
+-- Necesaria para la regla anti doble reserva (rangos de tiempo por barbero).
+-- Se instala en el esquema "extensions" (no en "public"), como recomienda Supabase.
+create schema if not exists extensions;
+create extension if not exists btree_gist with schema extensions;
+set search_path = public, extensions;
 
 -- ---------------------------------------------------------------------
 -- 0. Limpieza (para poder ejecutar el script varias veces)
 -- ---------------------------------------------------------------------
 drop function if exists public.reservar_cita(bigint, bigint, date, time, text, text);
+drop function if exists public.reservar_cita(bigint, bigint, date, time, text, text, boolean);
 drop function if exists public.horas_ocupadas(bigint, date);
 drop table if exists public.citas      cascade;
 drop table if exists public.horarios   cascade;
@@ -89,7 +93,10 @@ create table public.citas (
   barbero_id        bigint not null references public.barberos(id) on delete restrict,
   servicio_id       bigint not null references public.servicios(id) on delete restrict,
   cliente_nombre    text not null check (char_length(trim(cliente_nombre)) between 2 and 80),
-  cliente_contacto  text check (cliente_contacto is null or char_length(cliente_contacto) <= 30),
+  -- Celular colombiano obligatorio, guardado solo con dígitos: 3XXXXXXXXX
+  cliente_contacto  text not null check (cliente_contacto ~ '^3[0-9]{9}$'),
+  -- Momento en que el cliente autorizó el tratamiento de sus datos (Ley 1581 de 2012)
+  autorizacion_datos timestamptz not null,
   fecha             date not null,
   hora_inicio       time not null,
   hora_fin          time not null,
@@ -108,6 +115,8 @@ create table public.citas (
 );
 
 create index citas_fecha_idx on public.citas (fecha, barbero_id);
+create index citas_contacto_idx on public.citas (cliente_contacto, fecha);
+create index citas_creado_idx on public.citas (creado_en);
 
 -- Usuarios que pueden entrar al panel /admin
 create table public.admins (
@@ -145,30 +154,56 @@ $$;
 -- Reservar una cita (lo usa el cliente desde la página).
 -- Valida todo en el servidor; el cliente no puede saltarse las reglas.
 -- Errores posibles (para mostrar mensajes claros en la página):
---   HORARIO_OCUPADO, BARBERO_NO_DISPONIBLE, FUERA_DE_HORARIO,
---   FECHA_INVALIDA, SERVICIO_NO_DISPONIBLE, NOMBRE_INVALIDO
+--   NOMBRE_INVALIDO, CONTACTO_INVALIDO, AUTORIZACION_REQUERIDA,
+--   FECHA_INVALIDA, SERVICIO_NO_DISPONIBLE, BARBERO_NO_DISPONIBLE,
+--   FUERA_DE_HORARIO, HORARIO_OCUPADO,
+--   LIMITE_RESERVAS (máx. 2 citas futuras por celular),
+--   DEMASIADAS_SOLICITUDES (freno contra reservas masivas automáticas)
 create function public.reservar_cita(
   p_barbero   bigint,
   p_servicio  bigint,
   p_fecha     date,
   p_hora      time,
   p_nombre    text,
-  p_contacto  text default null
+  p_contacto  text,
+  p_acepta    boolean
 )
 returns table (id bigint, fecha date, hora_inicio time, hora_fin time)
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = public, extensions
 as $$
 declare
   v_ahora     timestamp := (now() at time zone 'America/Bogota');
+  v_nombre    text := regexp_replace(trim(coalesce(p_nombre, '')), '\s+', ' ', 'g');
+  v_tel       text := regexp_replace(coalesce(p_contacto, ''), '[^0-9]', '', 'g');
   v_duracion  smallint;
   v_horario   public.horarios%rowtype;
   v_fin       time;
   v_id        bigint;
 begin
-  if p_nombre is null or char_length(trim(p_nombre)) < 2 then
+  -- 1. Datos del cliente
+  if char_length(v_nombre) < 2 or char_length(v_nombre) > 80 or v_nombre !~ '[[:alpha:]]' then
     raise exception 'NOMBRE_INVALIDO';
   end if;
+  if char_length(v_tel) = 12 and left(v_tel, 2) = '57' then v_tel := substr(v_tel, 3); end if;  -- +57
+  if v_tel !~ '^3[0-9]{9}$' then
+    raise exception 'CONTACTO_INVALIDO';
+  end if;
+  if coalesce(p_acepta, false) is not true then
+    raise exception 'AUTORIZACION_REQUERIDA';
+  end if;
 
+  -- 2. Freno contra abuso: un solo proceso a la vez por celular y límites de cantidad
+  perform pg_advisory_xact_lock(hashtext('reserva:' || v_tel));
+  if (select count(*) from public.citas c
+      where c.cliente_contacto = v_tel and c.estado = 'confirmada'
+        and (c.fecha + c.hora_inicio) > v_ahora) >= 2 then
+    raise exception 'LIMITE_RESERVAS';
+  end if;
+  if (select count(*) from public.citas c where c.creado_en > now() - interval '10 minutes') >= 30 then
+    raise exception 'DEMASIADAS_SOLICITUDES';
+  end if;
+
+  -- 3. Fecha, servicio, barbero y horario
   if p_fecha < v_ahora::date or p_fecha > v_ahora::date + 60
      or (p_fecha + p_hora) <= v_ahora then
     raise exception 'FECHA_INVALIDA';
@@ -192,11 +227,12 @@ begin
     raise exception 'FUERA_DE_HORARIO';
   end if;
 
+  -- 4. Guardar (la restricción citas_sin_cruce impide la doble reserva)
   begin
     insert into public.citas (barbero_id, servicio_id, cliente_nombre, cliente_contacto,
-                              fecha, hora_inicio, hora_fin, estado)
-    values (p_barbero, p_servicio, trim(p_nombre), nullif(trim(p_contacto), ''),
-            p_fecha, p_hora, v_fin, 'confirmada')
+                              fecha, hora_inicio, hora_fin, estado, autorizacion_datos)
+    values (p_barbero, p_servicio, v_nombre, v_tel,
+            p_fecha, p_hora, v_fin, 'confirmada', now())
     returning citas.id into v_id;
   exception when exclusion_violation then
     raise exception 'HORARIO_OCUPADO';
@@ -235,11 +271,15 @@ create policy "admin todo" on public.citas     for all to authenticated using (p
 create policy "admin se ve" on public.admins   for select to authenticated using (user_id = auth.uid());
 
 -- Permisos de las funciones
-revoke all on function public.horas_ocupadas(bigint, date) from public;
-revoke all on function public.reservar_cita(bigint, bigint, date, time, text, text) from public;
+-- Permisos de las funciones (principio de mínimo privilegio).
+-- horas_ocupadas y reservar_cita son SECURITY DEFINER a propósito: son la ÚNICA puerta
+-- del visitante a la tabla citas, devuelven solo lo necesario y validan todo.
+revoke all on function public.horas_ocupadas(bigint, date) from public, anon, authenticated;
+revoke all on function public.reservar_cita(bigint, bigint, date, time, text, text, boolean) from public, anon, authenticated;
+revoke all on function public.es_admin() from public, anon, authenticated;
 grant execute on function public.horas_ocupadas(bigint, date) to anon, authenticated;
-grant execute on function public.reservar_cita(bigint, bigint, date, time, text, text) to anon, authenticated;
-grant execute on function public.es_admin() to anon, authenticated;
+grant execute on function public.reservar_cita(bigint, bigint, date, time, text, text, boolean) to anon, authenticated;
+grant execute on function public.es_admin() to authenticated;   -- el visitante anónimo no la necesita
 
 -- Tiempo real: la agenda del administrador se actualiza sola cuando entra
 -- una cita. (Las reglas de seguridad aplican: solo el admin recibe avisos.)

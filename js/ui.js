@@ -90,7 +90,7 @@ var chairSvg='<svg class="chair" viewBox="0 0 400 450" role="img" aria-label="Si
 
 /* Confeti al confirmar (se omite si el usuario prefiere menos movimiento) */
 function confetti(host){
-  if(!host||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
+  if(!host||menosMovimiento())return;
   var c=document.createElement('canvas');c.className='confetti';host.appendChild(c);
   var r=host.getBoundingClientRect(),dpr=window.devicePixelRatio||1;c.width=r.width*dpr;c.height=r.height*dpr;
   var x=c.getContext('2d');x.scale(dpr,dpr);var cols=['#c8962a','#b5372b','#1a1a2e','#e3b552','#1d6b45'],P=[];
@@ -99,4 +99,39 @@ function confetti(host){
   (function f(t){var e=t-t0;x.clearRect(0,0,r.width,r.height);
     P.forEach(function(p){p.vy+=.34;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=p.va;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.globalAlpha=Math.max(0,1-e/2300);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});
     if(e<2300)requestAnimationFrame(f);else c.remove();})(t0);
+}
+
+/* =====================================================================
+   Accesibilidad del movimiento (WCAG 2.2: 2.2.2 y 2.3.3)
+   - Respeta la preferencia del sistema "reducir movimiento".
+   - Botón para pausar todas las animaciones (se recuerda en este navegador).
+   ===================================================================== */
+var MOV_KEY = 'tauros-sin-movimiento';
+function prefiereSinMovimiento() { return !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+function movimientoPausado() { return document.documentElement.classList.contains('sin-mov'); }
+function menosMovimiento() { return prefiereSinMovimiento() || movimientoPausado(); }
+function aplicarMovimiento(pausar) {
+  document.documentElement.classList.toggle('sin-mov', pausar);
+  try { localStorage.setItem(MOV_KEY, pausar ? '1' : '0'); } catch (e) { }
+  document.querySelectorAll('[data-mov]').forEach(function (b) {
+    b.setAttribute('aria-pressed', String(pausar));
+    b.textContent = pausar ? 'Reanudar animaciones' : 'Pausar animaciones';
+  });
+}
+(function () { var v = null; try { v = localStorage.getItem(MOV_KEY); } catch (e) { } if (v === '1') document.documentElement.classList.add('sin-mov'); })();
+function botonMovimiento(extraClase) {
+  var p = movimientoPausado();
+  return '<button type="button" class="mov-btn ' + (extraClase || '') + '" data-mov aria-pressed="' + p + '">' + (p ? 'Reanudar animaciones' : 'Pausar animaciones') + '</button>';
+}
+function enlazarMovimiento() { document.querySelectorAll('[data-mov]').forEach(function (b) { b.onclick = function () { aplicarMovimiento(!movimientoPausado()); }; }); }
+function desplazar(el) { if (el) el.scrollIntoView({ behavior: menosMovimiento() ? 'auto' : 'smooth' }); }
+
+/* Mantiene el foco del teclado dentro de un diálogo abierto (WCAG 2.1.2 / 2.4.3) */
+function atraparFoco(cont, e) {
+  if (e.key !== 'Tab' || !cont) return;
+  var f = Array.prototype.filter.call(cont.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])'), function (x) { return x.offsetParent !== null; });
+  if (!f.length) return;
+  var first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
 }

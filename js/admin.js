@@ -61,10 +61,35 @@ function marco() {
   var tabs = [['agenda', 'Agenda'], ['barberos', 'Barberos'], ['horarios', 'Horarios'], ['servicios', 'Servicios']];
   V().innerHTML = '<div class="abar gut"><div class="in"><a class="mark" href="/">' + logoSvg + '<b>Tauros</b><span>Panel</span></a><nav class="tabs" aria-label="Secciones del panel">' +
     tabs.map(function (t) { return '<button data-t="' + t[0] + '" aria-current="' + (A.tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</nav>' +
-    '<div class="user">' + esc(A.correo) + '<button class="lnk" id="out">Salir</button></div></div></div><main class="amain gut in" id="am"><p class="loading-line">Cargando…</p></main>';
+    '<div class="user">' + esc(A.correo) + '<button class="lnk" id="pw">Cambiar contraseña</button><button class="lnk" id="out">Salir</button></div></div></div><main class="amain gut in" id="am"><p class="loading-line">Cargando…</p></main>';
   document.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { A.tab = b.dataset.t; marco(); }; });
+  q('pw').onclick = dlgClave;
   q('out').onclick = async function () { await salir(); if (A.canal) { sb.removeChannel(A.canal); A.canal = null; } pantallaLogin(); };
   ({ agenda: async function () { await cargarAgenda(); agenda(); }, barberos: barb, horarios: hors, servicios: svcs })[A.tab]();
+}
+
+/* ---------- Cambiar contraseña ---------- */
+function dlgClave() {
+  q('layer').innerHTML = '<div class="dlg-bg" id="db"><form class="dlg" id="cf" role="dialog" aria-modal="true" aria-labelledby="cf-t" novalidate><h2 id="cf-t">Cambiar contraseña</h2>' +
+    '<p style="margin:0;color:var(--mute);font-size:14px">Mínimo 10 caracteres, con letras mayúsculas, minúsculas y números.</p>' +
+    '<div class="field"><label for="c-1">Nueva contraseña</label><input id="c-1" type="password" autocomplete="new-password" minlength="10" required></div>' +
+    '<div class="field"><label for="c-2">Repite la contraseña</label><input id="c-2" type="password" autocomplete="new-password" minlength="10" required><span class="err" id="c-e" aria-live="polite"></span></div>' +
+    '<div class="acts"><button type="button" class="btn btn-line" id="c-x">Cancelar</button><button class="btn btn-ink" type="submit" id="c-ok">Guardar</button></div></form></div>';
+  q('c-1').focus();
+  q('c-x').onclick = cerrarDlg; q('db').addEventListener('click', function (e) { if (e.target.id === 'db') cerrarDlg(); });
+  q('cf').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var a = q('c-1').value, b = q('c-2').value;
+    if (a.length < 10 || !/[a-z]/.test(a) || !/[A-Z]/.test(a) || !/[0-9]/.test(a)) { q('c-e').textContent = 'Usa al menos 10 caracteres con mayúsculas, minúsculas y números.'; return; }
+    if (a !== b) { q('c-e').textContent = 'Las dos contraseñas no coinciden.'; return; }
+    q('c-ok').classList.add('busy'); q('c-ok').textContent = 'Guardando…';
+    try { await cambiarClave(a); cerrarDlg(); toast('Contraseña actualizada. Úsala la próxima vez que entres.'); }
+    catch (err) {
+      console.error(err);
+      q('c-e').textContent = /weak|pwned|leaked|characters/i.test(err.message || '') ? 'Esa contraseña es muy débil. Prueba con una más larga y difícil de adivinar.' : 'No se pudo cambiar. Intenta de nuevo.';
+      q('c-ok').classList.remove('busy'); q('c-ok').textContent = 'Guardar';
+    }
+  });
 }
 
 /* ---------- Agenda ---------- */
@@ -126,7 +151,7 @@ function citaDlg(id) {
   var c = A.citas.find(function (x) { return x.id === id; }), b = B(c.barbero_id), sv = SV(c.servicio_id);
   q('layer').innerHTML = '<div class="dlg-bg" id="db"><div class="dlg" role="dialog" aria-modal="true" aria-label="Detalle de la cita"><h2>' + esc(c.cliente_nombre) + '</h2>' +
     '<dl class="recap"><dt>Servicio</dt><dd>' + esc(sv ? sv.nombre + ' · ' + cop(sv.precio) : '') + '</dd><dt>Barbero</dt><dd>' + esc(b ? b.nombre : '') + '</dd><dt>Día</dt><dd>' + fl(c.fecha) + '</dd><dt>Hora</dt><dd>' + h12(c.hora_inicio) + ' – ' + h12(c.hora_fin) + '</dd>' +
-    '<dt>Celular</dt><dd>' + (c.cliente_contacto ? esc(c.cliente_contacto) : 'No dejó') + '</dd><dt>Estado</dt><dd>' + cap(c.estado) + '</dd><dt>Comprobante</dt><dd>TB-' + c.id + '</dd></dl>' +
+    '<dt>Celular</dt><dd>' + (c.cliente_contacto ? esc(formatoCelular(c.cliente_contacto) || c.cliente_contacto) : 'No dejó') + '</dd><dt>Estado</dt><dd>' + cap(c.estado) + '</dd><dt>Comprobante</dt><dd>TB-' + c.id + '</dd></dl>' +
     '<div class="acts">' + (c.estado === 'confirmada' ? '<button class="btn btn-red" id="x-c">Cancelar cita</button><button class="btn btn-ink" id="x-d">Marcar atendida</button>' : '<button class="btn btn-line" id="x-z">Cerrar</button>') + '</div></div></div>';
   q('db').addEventListener('click', function (e) { if (e.target.id === 'db') cerrarDlg(); });
   if (q('x-z')) q('x-z').onclick = cerrarDlg;
@@ -245,7 +270,10 @@ function svcs() {
 }
 
 /* ---------- Arranque ---------- */
-document.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrarDlg(); });
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') cerrarDlg();
+  else atraparFoco(document.querySelector('#layer .dlg'), e);
+});
 (async function () {
   try {
     var s = await sesionActual();
