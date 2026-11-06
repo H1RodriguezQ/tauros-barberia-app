@@ -1,96 +1,330 @@
-# Tauros Barbería · Sistema de agendamiento de citas
+<p align="center">
+  <img src="img/logo.svg" width="72" alt="Logo de Tauros Barbería">
+</p>
 
-Aplicación web para que los clientes de **Tauros Barbería** (Bucaramanga) reserven su turno en línea, viendo en tiempo real qué horas tiene libres cada barbero, y para que el administrador gestione barberos, horarios, servicios y la agenda del día.
+<h1 align="center">Tauros Barbería · Sistema de agendamiento de citas</h1>
 
-Proyecto académico · Universidad de Santander.
+<p align="center">
+  Aplicación web para que los clientes reserven su turno en línea, viendo en tiempo real qué horas tiene libres cada barbero,<br>
+  y para que el administrador gestione barberos, horarios, servicios y la agenda del día.
+</p>
 
-## Problema que resuelve
+<p align="center">
+  <a href="https://tauros-barberia-app.vercel.app"><b>🌐 Ver el sitio publicado</b></a> ·
+  <a href="https://tauros-barberia-app.vercel.app/admin"><b>🔐 Panel de administración</b></a> ·
+  <a href="docs/demo-tauros.mp4"><b>🎬 Video de demostración</b></a>
+</p>
 
-La barbería agendaba de forma manual (llamadas y papel). Eso causaba **citas dobles** (dos clientes con el mismo barbero a la misma hora), clientes que no sabían qué horas había libres y mucha carga para el administrador.
+<p align="center">
+  <img alt="HTML5" src="https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white">
+  <img alt="CSS3" src="https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white">
+  <img alt="JavaScript" src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black">
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white">
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white">
+</p>
+
+<p align="center"><i>Proyecto de aula · Universidad de Santander</i></p>
+
+![Página de inicio](docs/capturas/01-inicio.png)
+
+---
+
+## Contenido
+
+- [El problema](#el-problema)
+- [La solución](#la-solución)
+- [Capturas](#capturas)
+- [Funcionalidades](#funcionalidades)
+- [Arquitectura](#arquitectura)
+- [Modelo de datos](#modelo-de-datos)
+- [Tecnologías](#tecnologías)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Instalación y despliegue](#instalación-y-despliegue)
+- [Seguridad](#seguridad)
+- [Decisiones técnicas y problemas resueltos](#decisiones-técnicas-y-problemas-resueltos)
+- [Pruebas realizadas](#pruebas-realizadas)
+- [Trazabilidad de requisitos](#trazabilidad-de-requisitos)
+- [Mejoras futuras](#mejoras-futuras)
+
+---
+
+## El problema
+
+Tauros Barbería, en el centro de Bucaramanga, agendaba sus citas **de forma manual**: por teléfono, por mensaje o en persona. Eso causaba:
+
+- **Doble reserva:** dos clientes con el mismo barbero a la misma hora.
+- **Falta de visibilidad:** el cliente no podía saber desde su casa qué horas había libres.
+- **Carga operativa:** el administrador perdía tiempo coordinando cada cita.
+- **Pérdida de clientes:** fuera del horario de atención nadie podía agendar.
+
+## La solución
+
+Una aplicación web con dos módulos:
+
+| Módulo cliente (`/`) | Módulo administrador (`/admin`) |
+|---|---|
+| Ve los barberos, servicios y precios | Entra con correo y contraseña |
+| Ve en tiempo real las horas libres | Ve la agenda del día por barbero, en tiempo real |
+| Reserva en 5 pasos, sin crear cuenta | Marca citas como atendidas o canceladas |
+| Recibe un comprobante con número de reserva | Gestiona barberos, sillas, horarios y servicios |
+
+## Capturas
+
+| Servicios y precios | Barberos |
+|---|---|
+| ![Servicios](docs/capturas/02-servicios.png) | ![Barberos](docs/capturas/03-barberos.png) |
+
+| Reserva: elegir día y hora | En el celular |
+|---|---|
+| ![Reserva](docs/capturas/04-reserva-horas.png) | <img src="docs/capturas/05-celular.png" width="260" alt="Vista en celular"> |
+
+| Panel: acceso | Panel: agenda del día |
+|---|---|
+| ![Login](docs/capturas/06-admin-login.png) | ![Agenda](docs/capturas/07-admin-agenda.png) |
+
+| Panel: barberos | Panel: horarios |
+|---|---|
+| ![Barberos admin](docs/capturas/08-admin-barberos.png) | ![Horarios](docs/capturas/09-admin-horarios.png) |
+
+🎬 **Video de demostración (3:29):** [`docs/demo-tauros.mp4`](docs/demo-tauros.mp4)
 
 ## Funcionalidades
 
-**Módulo cliente** (`/`)
-- Ver los barberos con su silla, especialidad y turnos libres de hoy (RF-01, RF-02).
-- Carta de servicios con precio y duración.
-- Reservar en 5 pasos: barbero → servicio → día → hora → datos (RF-03, RF-04, RF-05).
-- Horas libres en verde y ocupadas en gris, calculadas según la duración del servicio.
-- Comprobante en pantalla con número de reserva (RF-06).
+### Módulo cliente
+- Portada con los **turnos libres de hoy** y el próximo disponible, calculados en vivo.
+- **Carta de servicios** por categoría (cortes, barba, extras) con precio y duración.
+- **Galería de estilos** que abre la reserva con el servicio y el barbero indicados.
+- **Barberos** con su silla, especialidad y turnos libres; los que están de descanso no se pueden elegir.
+- **Reserva en 5 pasos:** barbero → servicio → día → hora → datos.
+  - Horas **libres en verde** y **ocupadas en gris**.
+  - Solo se ofrecen horas donde el servicio **cabe completo** (un "Corte + barba" ocupa 60 minutos).
+  - Nombre obligatorio, celular opcional, sin pago ni registro.
+- **Comprobante** en pantalla con número de reserva.
+- Diseño **responsive** pensado primero para celular, con barra fija para reservar.
 
-**Módulo administrador** (`/admin`)
-- Acceso con correo y contraseña (RF-07).
-- Agenda del día por barbero, con filtros por fecha y barbero, que se actualiza sola cuando entra una reserva (RF-11).
-- Marcar citas como atendidas o canceladas (si se cancela, el turno vuelve a quedar libre).
-- Registrar, editar y asignar barberos a sillas (RF-08, RF-09).
-- Activar o desactivar barberos: los inactivos no aparecen para reservar (RF-12).
-- Editar el horario semanal de cada barbero (RF-10).
-- Editar precio, duración y visibilidad de los servicios.
+### Módulo administrador
+- Acceso con **Supabase Auth** (correo y contraseña). Solo entran los usuarios autorizados.
+- **Agenda del día** en columnas por barbero, con navegación por fecha, filtro por barbero y estimado de ingresos.
+- La agenda **se actualiza sola** cuando un cliente reserva, con un aviso en pantalla.
+- **Citas:** marcar como atendida o cancelar (al cancelar, el turno vuelve a quedar libre).
+- **Barberos:** registrar, editar, asignar silla (o crear una nueva) y activar o desactivar.
+- **Horarios:** días, hora de entrada y salida y duración del turno, por barbero.
+- **Servicios:** cambiar precio, duración y visibilidad.
+
+## Arquitectura
+
+Arquitectura de tres capas **sin servidor propio** (JAMstack): el navegador se comunica directamente con la API de Supabase, y la seguridad la garantiza la base de datos con reglas por fila.
+
+```mermaid
+flowchart LR
+    subgraph Navegador["Navegador (cliente o administrador)"]
+        UI["Presentación<br/>HTML + CSS"]
+        JS["Lógica<br/>JavaScript"]
+    end
+    subgraph Vercel["Vercel"]
+        Static["Archivos estáticos<br/>index.html · admin.html · css · js"]
+    end
+    subgraph Supabase["Supabase"]
+        API["API REST + RPC"]
+        Auth["Auth<br/>(login admin)"]
+        RT["Realtime<br/>(agenda en vivo)"]
+        DB[("PostgreSQL<br/>+ Row Level Security")]
+    end
+    GitHub["GitHub"] -- "git push = despliegue automático" --> Vercel
+    Vercel -- "carga la página" --> UI
+    UI <--> JS
+    JS -- "leer catálogo · horas_ocupadas · reservar_cita" --> API
+    JS -- "iniciar sesión" --> Auth
+    RT -- "nueva cita" --> JS
+    API --> DB
+    Auth --> DB
+    DB --> RT
+```
+
+## Modelo de datos
+
+```mermaid
+erDiagram
+    SILLAS ||--o| BARBEROS : "tiene asignado"
+    BARBEROS ||--o{ HORARIOS : "trabaja"
+    BARBEROS ||--o{ CITAS : "atiende"
+    SERVICIOS ||--o{ CITAS : "se reserva"
+    SILLAS {
+        text id PK
+        smallint numero
+        text nombre
+        bool activa
+    }
+    BARBEROS {
+        bigint id PK
+        text nombre
+        text apodo
+        text especialidad
+        text silla_id FK
+        bool activo
+        text foto_url
+    }
+    HORARIOS {
+        bigint id PK
+        bigint barbero_id FK
+        smallint dia_semana
+        time hora_inicio
+        time hora_fin
+        smallint duracion_slot
+        bool activo
+    }
+    SERVICIOS {
+        bigint id PK
+        text categoria
+        text nombre
+        int precio
+        smallint duracion
+        bool activo
+    }
+    CITAS {
+        bigint id PK
+        bigint barbero_id FK
+        bigint servicio_id FK
+        text cliente_nombre
+        text cliente_contacto
+        date fecha
+        time hora_inicio
+        time hora_fin
+        text estado
+    }
+```
+
+Además existe la tabla `admins`, que indica qué usuarios de Supabase Auth pueden entrar al panel.
 
 ## Tecnologías
 
 | Tecnología | Uso |
 |---|---|
-| HTML5, CSS3, JavaScript (ES2017) | Interfaz y lógica del cliente, sin frameworks |
-| Supabase (PostgreSQL + Auth + Realtime) | Base de datos, inicio de sesión del administrador y avisos en tiempo real |
-| GitHub | Control de versiones |
-| Vercel | Publicación con despliegue automático en cada `git push` |
+| **HTML5** | Estructura de las páginas |
+| **CSS3** | Diseño visual y responsive (Grid, Flexbox), animaciones |
+| **JavaScript (ES2017)** | Lógica del cliente sin frameworks |
+| **Supabase** | Base de datos PostgreSQL, API, inicio de sesión y tiempo real |
+| **GitHub** | Control de versiones |
+| **Vercel** | Publicación con despliegue automático en cada `git push` |
 
-## Estructura
+## Estructura del proyecto
 
 ```
 tauros-barberia-app/
-├── index.html        Página del cliente
-├── admin.html        Panel de administración (se abre en /admin)
-├── css/estilos.css   Estilos compartidos
+├── index.html          Página del cliente
+├── admin.html          Panel de administración (se abre en /admin)
+├── css/
+│   └── estilos.css     Estilos compartidos
 ├── js/
-│   ├── config.js     URL y clave pública de Supabase + datos del negocio
-│   ├── ui.js         Utilidades, ilustraciones, confeti y avisos
-│   ├── api.js        Toda la comunicación con Supabase
-│   ├── cliente.js    Página pública y flujo de reserva
-│   └── admin.js      Panel del administrador
+│   ├── config.js       URL y clave pública de Supabase + datos del negocio
+│   ├── ui.js           Utilidades de fechas, ilustraciones, confeti y avisos
+│   ├── api.js          Toda la comunicación con Supabase
+│   ├── cliente.js      Página pública y flujo de reserva
+│   └── admin.js        Panel del administrador
 ├── img/logo.svg
-├── supabase.sql      Tablas, reglas de seguridad, funciones y datos iniciales
-└── vercel.json       URLs limpias (/admin) y cabeceras de seguridad
+├── docs/
+│   ├── capturas/       Capturas de pantalla
+│   └── demo-tauros.mp4 Video de demostración
+├── supabase.sql        Tablas, reglas de seguridad, funciones y datos iniciales
+└── vercel.json         URLs limpias (/admin) y cabeceras de seguridad
 ```
 
-## Cómo ponerlo a funcionar
+## Instalación y despliegue
 
 ### 1. Base de datos (Supabase)
 1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. En **SQL Editor → New query**, pega todo el contenido de `supabase.sql` y presiona **Run**.
+2. En **SQL Editor → New query**, pega todo el contenido de [`supabase.sql`](supabase.sql) y presiona **Run**.
 3. En **Authentication → Users → Add user**, crea el usuario administrador (marca *Auto Confirm User*).
-4. En **SQL Editor** conviértelo en administrador (cambia el correo):
+4. Conviértelo en administrador desde el **SQL Editor** (cambia el correo):
    ```sql
    insert into public.admins (user_id)
    select id from auth.users where email = 'tu-correo@ejemplo.com';
    ```
 5. En **Authentication → Sign In / Providers**, desactiva **Allow new users to sign up**.
-6. En **Project Settings → API**, copia la *Project URL* y la *publishable key* y ponlas en `js/config.js`.
+6. En **Project Settings → API**, copia la *Project URL* y la *publishable key* y ponlas en [`js/config.js`](js/config.js).
 
 ### 2. Probar en tu computador
 Abre la carpeta en Visual Studio Code y usa la extensión **Live Server** sobre `index.html`. El panel está en `admin.html`.
 
 ### 3. Publicar (GitHub + Vercel)
-1. Sube esta carpeta a un repositorio de GitHub.
+1. Sube el código a un repositorio de GitHub.
 2. En [vercel.com](https://vercel.com) → **Add New → Project** → importa el repositorio. *Framework Preset*: **Other**, sin comando de build.
-3. Cada `git push` publica una versión nueva automáticamente.
+3. En **Settings → Deployment Protection**, desactiva *Vercel Authentication* para que el sitio sea público.
+4. Cada `git push` a `main` publica una versión nueva automáticamente.
+
+> Las credenciales del administrador **no se guardan en el repositorio**. Pídeselas al equipo del proyecto.
 
 ## Seguridad
 
-- La clave de `config.js` es la **publishable key**: es pública por diseño (siempre queda visible en el navegador en una app sin servidor propio). Lo que protege los datos son las reglas **Row Level Security** de `supabase.sql`.
-- Un visitante solo puede **leer** barberos, sillas, horarios y servicios, y **reservar** a través de la función `reservar_cita`, que valida todo en el servidor. **No puede ver** nombres ni teléfonos de otros clientes.
+- La clave de `config.js` es la **publishable key**, pública por diseño: en una app sin servidor propio siempre queda visible en el navegador. Lo que protege los datos son las reglas **Row Level Security** de `supabase.sql`.
+- Un visitante solo puede **leer** barberos, sillas, horarios y servicios, y **reservar** a través de la función `reservar_cita`, que valida todo en el servidor.
+- Un visitante **no puede ver** nombres ni teléfonos de otros clientes: para pintar la disponibilidad usa `horas_ocupadas`, que solo devuelve horas.
 - Solo los usuarios de la tabla `admins` pueden modificar datos o ver las citas.
+- El registro público de usuarios está desactivado.
 - Nunca se usa la clave *secret / service_role* en el código.
+- Vercel sirve el sitio por **HTTPS**, con cabeceras `X-Frame-Options`, `X-Content-Type-Options` y `Referrer-Policy`.
 
 ## Decisiones técnicas y problemas resueltos
 
-1. **Supabase es relacional (PostgreSQL), no NoSQL.** El documento proponía colecciones JSON; se modelaron como tablas con los mismos campos, relaciones y validaciones.
+1. **Supabase es relacional (PostgreSQL), no NoSQL.** El documento del proyecto proponía colecciones JSON. Se modelaron como tablas con los mismos campos, más relaciones y validaciones.
 2. **Condición de carrera (doble reserva).** En lugar de solo verificar antes de guardar, la tabla `citas` tiene una restricción de exclusión (`citas_sin_cruce`) que impide que un barbero tenga dos citas que se crucen en el tiempo. Si dos clientes confirman a la vez, la base de datos acepta una y rechaza la otra, y la página le pide al segundo que elija otra hora.
-3. **Variables de entorno en un sitio estático.** Un sitio HTML/JS sin paso de compilación no puede leer las variables de entorno de Vercel, así que la clave pública va en `config.js` y la seguridad se garantiza con RLS.
-4. **Acceso del administrador.** En vez de una contraseña escrita en el código (visible para cualquiera), se usa Supabase Auth con un usuario real y la tabla `admins`.
-5. **Duración por servicio.** Se agregó la tabla `servicios` (en el documento era una mejora futura): un "Corte + barba" ocupa 60 minutos y el sistema solo ofrece horas donde cabe completo.
+3. **Variables de entorno en un sitio estático.** Un sitio HTML/JS sin paso de compilación no puede leer las variables de entorno de Vercel. La clave pública va en `config.js` y la seguridad se garantiza con RLS.
+4. **Acceso del administrador.** En vez de una contraseña escrita en el código, que cualquiera podría ver, se usa Supabase Auth con un usuario real y la tabla `admins`.
+5. **Duración por servicio.** Se agregó la tabla `servicios`, que en el documento era una mejora futura. Así un "Corte + barba" ocupa 60 minutos y el sistema solo ofrece horas donde cabe completo.
 6. **Silla y barbero.** La relación se guarda solo en `barberos.silla_id` para que nunca quede desincronizada.
+7. **Publicación.** El primer despliegue en Vercel no se había generado (error 404) y la protección de Vercel pedía iniciar sesión. Se lanzó el despliegue y se desactivó la protección para que el sitio fuera público.
 
-## Datos de ejemplo
+## Pruebas realizadas
 
-Los barberos, servicios, precios, dirección, teléfono, cifras (calificación, cortes al año) y las opiniones son **de ejemplo**. Cámbialos en `supabase.sql`, en el panel `/admin` y en `js/config.js` antes de usarlo con clientes reales.
+| Caso | Resultado esperado | Resultado |
+|---|---|---|
+| Reservar un turno libre | La cita se guarda y aparece el comprobante | ✅ |
+| Dos reservas que se cruzan (mismo barbero y hora) | Se acepta una y la otra recibe `HORARIO_OCUPADO` | ✅ |
+| Reservar después de la hora de salida del barbero | Rechazada con `FUERA_DE_HORARIO` | ✅ |
+| Reservar con un barbero desactivado | Rechazada con `BARBERO_NO_DISPONIBLE` | ✅ |
+| Reservar en una fecha u hora pasada | Rechazada con `FECHA_INVALIDA` | ✅ |
+| Confirmar sin nombre | Mensaje de validación en el formulario | ✅ |
+| Visitante intenta ver las citas de otros | No ve ninguna | ✅ |
+| Visitante intenta modificar un barbero | No cambia nada | ✅ |
+| Login con contraseña incorrecta | Mensaje "Correo o contraseña incorrectos" | ✅ |
+| Usuario con sesión que no es admin | No puede ver ni modificar datos | ✅ |
+| Desactivar un barbero en el panel | Desaparece de las opciones del cliente | ✅ |
+| Cambiar horario o precio en el panel | La página del cliente lo refleja | ✅ |
+| Vista en celular (390 px) | Sin desbordes horizontales | ✅ |
+
+## Trazabilidad de requisitos
+
+| Requisito | Dónde se cumple |
+|---|---|
+| RF-01 Visualizar sillas | Sección "Conoce a los de la casa" · `cliente.js` |
+| RF-02 Seleccionar silla | Paso 1 de la reserva |
+| RF-03 Elegir fecha | Paso 3: solo días con horario del barbero |
+| RF-04 Horarios disponibles | Paso 4: verde libre, gris ocupado · `horas_ocupadas()` |
+| RF-05 Reservar cita | Paso 5 · `reservar_cita()` con validaciones |
+| RF-06 Confirmación | Comprobante con número de reserva |
+| RF-07 Acceso al panel | `/admin` con Supabase Auth + tabla `admins` |
+| RF-08 Registrar barberos | Panel → Barberos → Agregar barbero |
+| RF-09 Listar barberos | Panel → Barberos |
+| RF-10 Gestionar horarios | Panel → Horarios |
+| RF-11 Ver citas | Panel → Agenda (filtros por fecha y barbero) |
+| RF-12 Estado del barbero | Interruptor de disponibilidad |
+| RNF-01 Usabilidad | Flujo guiado de 5 pasos, sin registro |
+| RNF-02 Responsive | Diseño pensado primero para celular |
+| RNF-03 Rendimiento | Sin frameworks ni compilación; carga directa |
+| RNF-04 Disponibilidad | Vercel + Supabase |
+| RNF-05 Seguridad | HTTPS + RLS + Auth |
+| RNF-06 Mantenibilidad | Código separado por archivos y comentado |
+| RNF-07 Compatibilidad | Chrome, Edge, Firefox y Safari actuales |
+| RNF-08 Escalabilidad | Sillas, barberos y servicios se agregan desde el panel, sin tocar código |
+
+## Mejoras futuras
+
+- Recordatorios por WhatsApp o correo.
+- Pagos en línea.
+- Cuentas de cliente para ver o cancelar sus propias citas.
+- Panel de estadísticas (demanda por hora, barbero más solicitado).
+- Fotos reales de los barberos y opiniones reales de clientes.
+
+---
+
+> **Nota:** los nombres de barberos, precios, dirección, teléfono, cifras y opiniones son **datos de ejemplo** para el proyecto académico.
