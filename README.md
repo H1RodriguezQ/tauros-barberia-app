@@ -45,6 +45,7 @@
 - [Decisiones técnicas y problemas resueltos](#decisiones-técnicas-y-problemas-resueltos)
 - [Pruebas realizadas](#pruebas-realizadas)
 - [Trazabilidad de requisitos](#trazabilidad-de-requisitos)
+- [Encuesta de opinión](#encuesta-de-opinión-módulo-aparte)
 - [Mejoras futuras](#mejoras-futuras)
 
 ---
@@ -229,6 +230,7 @@ tauros-barberia-app/
 │   ├── capturas/       Capturas de pantalla
 │   └── demo-tauros.mp4 Video de demostración
 ├── privacidad.html     Política de tratamiento de datos (Ley 1581)
+├── encuesta/           Encuesta de opinión del sitio (módulo aparte)
 ├── supabase.sql        Tablas, reglas de seguridad, funciones y datos iniciales (instalación nueva)
 ├── migraciones/
 │   └── 01-seguridad.sql  Actualiza una base ya creada con la versión anterior
@@ -376,6 +378,14 @@ Siguiendo las pautas **WCAG 2.2**:
 | RNF-06 Mantenibilidad | Código separado por archivos y comentado |
 | RNF-07 Compatibilidad | Chrome, Edge, Firefox y Safari actuales |
 | RNF-08 Escalabilidad | Sillas, barberos y servicios se agregan desde el panel, sin tocar código |
+
+## Encuesta de opinión (módulo aparte)
+
+En la carpeta [`encuesta/`](encuesta/) hay una encuesta anónima para que el público califique el sitio. **No modifica nada de la aplicación de la barbería**: tiene sus propias páginas, estilos, código y tabla en la base de datos.
+
+- **Responder:** [tauros-barberia-app.vercel.app/encuesta](https://tauros-barberia-app.vercel.app/encuesta): estrellas, facilidad de uso, si lo usarían, qué les gustó y un comentario opcional.
+- **Resultados en vivo:** [tauros-barberia-app.vercel.app/encuesta/resultados](https://tauros-barberia-app.vercel.app/encuesta/resultados): promedio y gráficas que se actualizan cada 5 segundos. Los comentarios solo los ve el administrador.
+- **Base de datos:** [`encuesta/encuesta.sql`](encuesta/encuesta.sql) crea la tabla `encuesta_respuestas` y dos funciones (`enviar_opinion` y `resultados_encuesta`). No se guardan datos personales.
 
 ## Mejoras futuras
 
