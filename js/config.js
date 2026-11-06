@@ -20,8 +20,10 @@ var CONFIG = {
 var NEGOCIO = {
   nombre: 'Tauros Barbería',
   ciudad: 'Bucaramanga',
-  direccion: 'Calle 35 # 27-18, barrio Centro',
-  referencia: 'En pleno centro, a dos cuadras del parque Santander.',
+  direccion: 'C.C. Cacique, local 245 · Transversal 93 # 34-99',
+  referencia: 'Dentro del Centro Comercial Cacique, con parqueadero y fácil acceso.',
+  // Lo que se busca en Google Maps (mapa y botón "Cómo llegar")
+  mapa: 'Centro Comercial Cacique, Bucaramanga, Santander',
   telefono: '607 634 0000',
   instagram: '@taurosbarberia',
   pagos: 'Efectivo, Nequi y tarjeta',

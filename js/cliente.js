@@ -181,7 +181,11 @@ function renderC() {
     '<section class="sec gut" id="visita"><div class="in"><div class="head-row"><div><h2 class="h-big reveal">Visítanos.</h2><p class="h-sub reveal">' + esc(N.referencia) + '</p></div></div><div class="visit">' +
     '<div class="reveal"><h3>Dirección</h3><address>' + esc(N.direccion) + '<br>' + esc(N.ciudad) + ', Santander</address></div>' +
     '<div class="reveal"><h3>Horario</h3><table>' + hrs + '</table></div>' +
-    '<div class="reveal"><h3>Contacto</h3><p>' + esc(N.telefono) + '<br>' + esc(N.instagram) + '<br><span style="color:var(--mute)">' + esc(N.pagos) + '</span></p></div></div></div></section>' +
+    '<div class="reveal"><h3>Contacto</h3><p>' + esc(N.telefono) + '<br>' + esc(N.instagram) + '<br><span style="color:var(--mute)">' + esc(N.pagos) + '</span></p></div></div>' +
+    '<div class="mapa reveal" id="mapa"><div class="mapa-ph" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></div>' +
+    '<div class="mapa-txt"><b>' + esc(N.mapa.split(',')[0]) + '</b><span>' + esc(N.direccion) + ' · ' + esc(N.ciudad) + '</span></div>' +
+    '<div class="mapa-acc"><button class="btn btn-ink btn-sm" id="ver-mapa" type="button">Ver mapa</button><a class="btn btn-line btn-sm" href="https://www.google.com/maps/dir/?api=1&amp;destination=' + encodeURIComponent(N.mapa) + '" target="_blank" rel="noopener">Cómo llegar ↗</a></div>' +
+    '<p class="mapa-nota">El mapa lo muestra Google Maps y solo se carga si tocas «Ver mapa».</p></div></div></section>' +
 
     '<section class="final gut"><div class="in"><h2 class="h-big">Tu silla está lista.</h2><p class="h-sub" style="margin:0 auto">' + (nf.nx ? 'Quedan ' + nf.tot + ' turnos hoy. El próximo es a las ' + h12(nf.nx.h) + '.' : 'Hoy ya cerramos la agenda. Aparta tu turno para mañana.') + '</p>' +
     '<button class="btn btn-brass" data-book>Reservar turno</button></div></section></main>' +
@@ -205,6 +209,13 @@ function renderC() {
 
   /* Eventos */
   document.querySelectorAll('[data-book]').forEach(function (x) { x.onclick = function () { abrirReserva(null); }; });
+  var vm = document.getElementById('ver-mapa');
+  if (vm) vm.addEventListener('click', function () {
+    var box = document.getElementById('mapa'), f = document.createElement('iframe');
+    f.src = 'https://www.google.com/maps?q=' + encodeURIComponent(NEGOCIO.mapa) + '&output=embed';
+    f.title = 'Mapa: ' + NEGOCIO.mapa; f.loading = 'lazy'; f.referrerPolicy = 'no-referrer-when-downgrade';
+    box.classList.add('abierto'); box.querySelector('.mapa-ph').replaceWith(f); vm.remove(); f.focus();
+  });
   document.querySelectorAll('[data-b]').forEach(function (x) { x.onclick = function () { abrirReserva(+x.dataset.b); }; });
   document.querySelectorAll('[data-sc]').forEach(function (x) {
     x.onclick = function () {
