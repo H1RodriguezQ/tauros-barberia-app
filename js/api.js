@@ -34,10 +34,13 @@ async function cargarCatalogo() {
   ]);
   r.forEach(function (x) { if (x.error) throw x.error; });
 
+  // La columna instagram llega con la migración 02; si aún no existe, el campo se oculta en el panel
+  DB.tieneInstagram = !!(r[1].data[0] && 'instagram' in r[1].data[0]);
   DB.sillas = r[0].data.map(function (s) { return Object.assign({}, s, { n: s.numero }); });
   DB.barberos = r[1].data.map(function (b, i) {
     return Object.assign({}, b, {
       look: LOOKS[i % LOOKS.length],
+      instagram: usuarioInstagram(b.instagram),
       quote: b.frase || '',
       pide: (b.especialidad || '').split(/,| y /).map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 2)
     });
@@ -175,6 +178,7 @@ async function guardarBarbero(datos, sillaId) {
   if (otro) { r = await sb.from('barberos').update({ silla_id: null }).eq('id', otro.id); if (r.error) throw r.error; }
 
   var fila = { nombre: datos.nombre, especialidad: datos.especialidad, apodo: datos.apodo || null, foto_url: datos.foto_url || null, silla_id: sillaId };
+  if (DB.tieneInstagram) fila.instagram = usuarioInstagram(datos.instagram);
   if (datos.id) {
     r = await sb.from('barberos').update(fila).eq('id', datos.id);
     if (r.error) throw r.error;
@@ -205,4 +209,10 @@ function escucharCitas(alCambiar) {
   return sb.channel('citas-admin')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'citas' }, alCambiar)
     .subscribe();
+}
+
+/* Instagram: acepta "@usuario", "usuario" o el enlace del perfil y guarda solo el usuario */
+function usuarioInstagram(v) {
+  v = String(v || '').trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').split(/[/?#]/)[0];
+  return /^[A-Za-z0-9._]{1,30}$/.test(v) ? v : null;
 }

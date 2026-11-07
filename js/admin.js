@@ -196,6 +196,7 @@ function bForm(b) {
       return '<option value="' + s.id + '" ' + (b && b.silla_id === s.id ? 'selected' : '') + '>Silla ' + pad2(s.numero) + (o && (!b || o.id !== b.id) ? ' · ocupada por ' + esc(o.nombre.split(' ')[0]) : ' · libre') + '</option>';
     }).join('') + '<option value="nueva">Silla nueva (' + pad2(siguiente) + ')</option></select><span class="hint">Si eliges una silla ocupada, el otro barbero queda sin silla.</span></div>' +
     '<div class="field"><label for="b-f">Foto <small>(enlace a la imagen, opcional)</small></label><input id="b-f" type="url" value="' + esc(b && b.foto_url ? b.foto_url : '') + '" placeholder="https://"></div>' +
+    (DB.tieneInstagram ? '<div class="field"><label for="b-i">Instagram <small>(opcional: usuario o enlace del perfil)</small></label><input id="b-i" maxlength="80" autocomplete="off" value="' + esc(b && b.instagram ? '@' + b.instagram : '') + '" placeholder="@usuario"></div>' : '') +
     '<div class="acts"><button type="button" class="btn btn-line" id="b-x">Cancelar</button><button class="btn btn-ink" type="submit" id="b-ok">Guardar</button></div></form></div>';
   q('b-n').focus();
   q('b-x').onclick = cerrarDlg; q('db').addEventListener('click', function (e) { if (e.target.id === 'db') cerrarDlg(); });
@@ -204,7 +205,9 @@ function bForm(b) {
     var n = q('b-n').value.trim(), foto = q('b-f').value.trim();
     if (n.length < 3) { q('b-e').textContent = 'Escribe nombre y apellido.'; q('b-n').focus(); return; }
     if (foto && !/^https:\/\//.test(foto)) { q('b-e').textContent = 'La foto debe ser un enlace que empiece por https://'; return; }
-    var datos = { id: b ? b.id : null, nombre: n, apodo: q('b-a').value.trim(), especialidad: q('b-s').value.trim() || 'Barbero', foto_url: foto };
+    var ig = q('b-i') ? q('b-i').value.trim() : '';
+    if (ig && !usuarioInstagram(ig)) { q('b-e').textContent = 'El Instagram no es válido. Escribe el usuario, por ejemplo @juli.barber'; q('b-i').focus(); return; }
+    var datos = { id: b ? b.id : null, nombre: n, apodo: q('b-a').value.trim(), especialidad: q('b-s').value.trim() || 'Barbero', foto_url: foto, instagram: ig };
     if (await accion(q('b-ok'), function () { return guardarBarbero(datos, q('b-c').value); }, b ? 'Cambios guardados' : 'Barbero agregado con horario de lunes a sábado')) {
       cerrarDlg(); await cargarCatalogo(); barb();
     }

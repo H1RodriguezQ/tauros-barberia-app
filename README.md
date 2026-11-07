@@ -93,11 +93,11 @@ Una aplicación web con dos módulos:
 ## Funcionalidades
 
 ### Módulo cliente
-- Portada con los **turnos libres de hoy** y el próximo disponible, calculados en vivo.
-- **Carta de servicios** por categoría (cortes, barba, extras) con precio y duración.
-- **Galería de estilos** que abre la reserva con el servicio y el barbero indicados.
-- **Barberos** con su silla, especialidad y turnos libres; los que están de descanso no se pueden elegir.
-- **Reserva en 5 pasos:** barbero → servicio → día → hora → datos.
+- Portada simple, **sin ruido**: lo primero que ve el cliente son los **barberos con su foto** y si tienen turno hoy.
+- **Tocar la foto (o "Agendar") abre la reserva** directamente con ese barbero.
+- Botón **"Sus trabajos"** que lleva al **Instagram de cada barbero** (se configura desde el panel; requiere la migración `migraciones/02-instagram.sql`).
+- **Ubicación y horario** con mapa de Google Maps que solo se carga si el cliente lo pide, y botón "Cómo llegar".
+- **Reserva en pasos:** barbero → servicio → día → hora → datos (los precios y la duración se ven al elegir el servicio).
   - Horas **libres en verde** y **ocupadas en gris**.
   - Solo se ofrecen horas donde el servicio **cabe completo** (un "Corte + barba" ocupa 60 minutos).
   - Nombre y **celular colombiano obligatorios**, con formato automático (300 123 4567).

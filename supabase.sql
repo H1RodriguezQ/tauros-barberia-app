@@ -55,6 +55,7 @@ create table public.barberos (
   silla_id      text unique references public.sillas(id) on delete set null,
   activo        boolean not null default true,     -- RF-12: disponible / no disponible
   foto_url      text,
+  instagram     text check (instagram is null or instagram ~ '^[A-Za-z0-9._]{1,30}$'),  -- usuario de Instagram (sin @)
   anios         smallint check (anios >= 0),
   frase         text,
   creado_en     timestamptz not null default now()

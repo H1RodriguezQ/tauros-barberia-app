@@ -543,3 +543,36 @@ html.sin-mov .scr{transition:none}
 .menu-movil a.menu-admin{border:0;font-family:var(--body);font-size:14px;font-weight:500;color:var(--mute);text-align:center;padding-top:14px}
 @media (max-width:760px){.menu-btn{display:block}}
 @media (min-width:761px){.menu-movil{display:none!important}}
+
+/* Portada simple: elegir barbero (rediseño "menos ruido") */
+.intro .in{padding-block:64px 28px;text-align:center}
+.intro h1{margin:0;font-family:var(--serif);font-weight:800;font-size:clamp(40px,7vw,72px);letter-spacing:-.035em;line-height:1.02}
+.intro .sub{margin:14px auto 0;max-width:34ch;color:var(--mute);font-size:clamp(17px,2.2vw,21px);line-height:1.45}
+#equipo .team{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));max-width:1040px;margin:0 auto;gap:22px}
+#equipo .bcard .pic{border:0;padding:0;margin:0;background:none;cursor:pointer;width:100%;display:block;font:inherit;color:inherit}
+#equipo .bcard .pic svg,#equipo .bcard .pic img{transition:transform .5s var(--ease)}
+#equipo .bcard:hover .pic svg,#equipo .bcard:hover .pic img{transform:scale(1.04)}
+#equipo .bcard .estado{position:absolute;left:12px;bottom:12px;background:#ffffffeb;color:var(--free);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600}
+#equipo .bcard .estado.no{color:var(--mute)}
+#equipo .bcard .bd{gap:6px;padding:18px 20px 20px}
+#equipo .bcard .acc{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+#equipo .bcard .acc .btn{flex:1 1 auto;justify-content:center;min-height:46px;white-space:nowrap;padding-inline:18px}
+#equipo .bcard .ig{display:inline-flex;align-items:center;gap:6px}
+#equipo .bcard .ig svg{width:18px;height:18px;flex:none}
+.h-mid{margin:0 0 22px;font-family:var(--serif);font-weight:800;font-size:clamp(28px,4vw,40px);letter-spacing:-.03em}
+#visita .visit{grid-template-columns:repeat(2,minmax(0,1fr))}
+#visita{padding-block:80px}
+#equipo .bcard .pic{aspect-ratio:1/1;overflow:hidden}
+body:has(#equipo) .foot-site .in{padding-block:22px}
+@media (max-width:760px){
+  .intro .in{padding-block:36px 18px}
+  #equipo .team{grid-template-columns:1fr;gap:16px}
+  #equipo .bcard{display:grid;grid-template-columns:132px 1fr;align-items:stretch}
+  #equipo .bcard .pic{aspect-ratio:auto;height:100%;min-height:150px}
+  #equipo .bcard .estado{left:8px;right:8px;bottom:8px;font-size:11px;padding:4px 8px;text-align:center}
+  #equipo .bcard .bd{padding:14px 14px 14px 16px}
+  #equipo .bcard .acc{flex-direction:column;margin-top:auto;padding-top:8px}
+  #equipo .bcard .acc .btn{min-height:42px;font-size:15px;padding:10px 14px}
+  #visita .visit{grid-template-columns:1fr}
+  #visita{padding-block:56px}
+}
