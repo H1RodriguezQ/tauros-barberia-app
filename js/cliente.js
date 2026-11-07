@@ -41,7 +41,7 @@ function renderC() {
       '<button class="pic" data-b="' + b.id + '" aria-label="Agendar con ' + esc(b.nombre) + '">' + portrait(b).replace('<svg ', '<svg preserveAspectRatio="xMidYMax slice" ') +
       '<span class="estado' + (sl.length ? '' : ' no') + '">' + estado + '</span></button>' +
       '<div class="bd"><h3>' + esc(b.nombre) + '</h3><div class="role">' + (b.apodo ? esc(b.apodo) + ' · ' : '') + esc(b.especialidad) + '</div>' +
-      '<div class="acc"><button class="btn btn-ink" data-b="' + b.id + '">Agendar</button>' +
+      '<div class="acc"><button class="btn btn-brass" data-b="' + b.id + '">Agendar</button>' +
       (b.instagram ? '<a class="btn btn-line ig" href="' + enlaceInstagram(b.instagram) + '" target="_blank" rel="noopener" aria-label="Ver trabajos de ' + esc(primerNombre(b)) + ' en Instagram (se abre en otra pestaña)">' + IG_SVG + '<span>Sus trabajos</span></a>' : '') +
       '</div></div></article>';
   }).join('');
@@ -57,6 +57,7 @@ function renderC() {
     var on = (r[0] === 1 && dow >= 1 && dow <= 5) || r[0] === dow; return '<tr class="' + (on ? 'now' : '') + '"><td>' + r[1] + (on ? ' · hoy' : '') + '</td><td>' + r[2] + '</td></tr>';
   }).join('');
 
+  document.body.classList.add('portada');
   document.getElementById('app').innerHTML =
     '<a class="skip" href="#equipo">Saltar a los barberos</a>' +
     '<header class="nav gut"><div class="in"><a class="mark" href="#">' + logoSvg + '<b>Tauros</b><span>Barbería</span></a>' +
@@ -65,7 +66,7 @@ function renderC() {
     '<div class="menu-movil" id="menu-movil" hidden><nav aria-label="Menú"><a href="#equipo">Barberos</a><a href="#servicios">Servicios y precios</a><a href="#visita">Ubicación y horario</a><a class="menu-admin" href="/admin">Acceso administrador</a></nav></div></header>' +
 
     '<main id="contenido"><section class="intro gut"><div class="in">' +
-    '<h1>Elige tu barbero.</h1><p class="sub">Toca su foto y aparta tu hora. Sin llamadas, sin filas.</p></div></section>' +
+    '<p class="eyebrow">' + esc(N.nombre) + ' · ' + esc(N.ciudad) + '</p><h1>Elige tu <span>barbero.</span></h1><p class="sub">Toca su foto y aparta tu hora. Sin llamadas, sin filas.</p></div></section>' +
     '<section class="gut" id="equipo" aria-label="Barberos"><div class="in"><div class="team">' + team + '</div></div></section>' +
 
     '<section class="gut" id="servicios"><div class="in"><h2 class="h-mid">Servicios y precios</h2><p class="sv-nota">Toca un servicio para agendarlo; en la reserva puedes sumar otros. Pagas en la barbería: ' + esc(N.pagos) + '.</p><div class="sv-menu">' + menuSv + '</div></div></section>' +

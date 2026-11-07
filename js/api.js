@@ -14,12 +14,12 @@ var OCC = {};
 
 /* Estilo de ilustración para cada barbero mientras no tenga foto */
 var LOOKS = [
-  { skin: 0, hair: 'fade', beard: true, bg: '#f1e3c4' },
-  { skin: 1, hair: 'rapado', beard: true, bg: '#dfe8e1' },
-  { skin: 2, hair: 'rizo', mustache: true, bg: '#ece1ef' },
-  { skin: 3, hair: 'peinado', bg: '#e3e6f0' },
-  { skin: 0, hair: 'pompa', bg: '#f6dcd3' },
-  { skin: 1, hair: 'buzz', mustache: true, bg: '#dde7ee' }
+  { skin: 0, hair: 'fade', beard: true, bg: '#efdcb4' },
+  { skin: 1, hair: 'rapado', beard: true, bg: '#e7d5bd' },
+  { skin: 2, hair: 'rizo', mustache: true, bg: '#f2e6cf' },
+  { skin: 3, hair: 'peinado', bg: '#e9d9c1' },
+  { skin: 0, hair: 'pompa', bg: '#f0dcc4' },
+  { skin: 1, hair: 'buzz', mustache: true, bg: '#e6dccb' }
 ];
 
 function hhmm(t) { return t ? String(t).slice(0, 5) : t; }
