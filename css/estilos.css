@@ -576,3 +576,22 @@ body:has(#equipo) .foot-site .in{padding-block:22px}
   #visita .visit{grid-template-columns:1fr}
   #visita{padding-block:56px}
 }
+
+/* Servicios y precios: lista sencilla tipo carta */
+#servicios{padding-block:80px 0}
+.sv-nota{margin:-12px 0 22px;color:var(--mute);font-size:15px}
+.sv-menu{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.sv-grupo{background:var(--card);border-radius:24px;padding:22px 22px 10px}
+.sv-grupo h3{margin:0 0 6px;font-family:var(--serif);font-size:20px;font-weight:700;letter-spacing:-.02em}
+.sv-grupo ul{list-style:none;margin:0;padding:0}
+.sv-grupo li + li{border-top:1px solid var(--paper-2)}
+.sv-fila{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:12px 0;border-radius:10px}
+.sv-fila:hover .sv-n b{color:var(--brass-ink)}
+.sv-fila:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.sv-n{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sv-n b{font-weight:600;font-size:16px}
+.sv-n small{color:var(--mute);font-size:13px;line-height:1.35}
+.sv-d{color:var(--mute);font-size:13px;white-space:nowrap}
+.sv-p{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:980px){.sv-menu{grid-template-columns:1fr}}
+@media (max-width:760px){#servicios{padding-block:56px 0}}

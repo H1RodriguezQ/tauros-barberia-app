@@ -96,6 +96,7 @@ Una aplicación web con dos módulos:
 - Portada simple, **sin ruido**: lo primero que ve el cliente son los **barberos con su foto** y si tienen turno hoy.
 - **Tocar la foto (o "Agendar") abre la reserva** directamente con ese barbero.
 - Botón **"Sus trabajos"** que lleva al **Instagram de cada barbero** (se configura desde el panel; requiere la migración `migraciones/02-instagram.sql`).
+- **Servicios y precios** en una carta sencilla por categoría (cortes, barba, extras) con duración; tocar un servicio abre la reserva con ese servicio.
 - **Ubicación y horario** con mapa de Google Maps que solo se carga si el cliente lo pide, y botón "Cómo llegar".
 - **Reserva en pasos:** barbero → servicio → día → hora → datos (los precios y la duración se ven al elegir el servicio).
   - Horas **libres en verde** y **ocupadas en gris**.

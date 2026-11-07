@@ -1,6 +1,6 @@
 /* =====================================================================
    Tauros Barbería · cliente.js
-   Página pública: elegir barbero (con su Instagram), ubicación
+   Página pública: elegir barbero (con su Instagram), servicios, ubicación
    y el flujo de reserva (barbero → servicio → día y hora → datos → recibo).
    ===================================================================== */
 
@@ -45,6 +45,14 @@ function renderC() {
       (b.instagram ? '<a class="btn btn-line ig" href="' + enlaceInstagram(b.instagram) + '" target="_blank" rel="noopener" aria-label="Ver trabajos de ' + esc(primerNombre(b)) + ' en Instagram (se abre en otra pestaña)">' + IG_SVG + '<span>Sus trabajos</span></a>' : '') +
       '</div></div></article>';
   }).join('');
+  var menuSv = CATS.map(function (c) {
+    var items = DB.servicios.filter(function (sv) { return sv.cat === c.id && sv.activo; });
+    if (!items.length) return '';
+    return '<div class="sv-grupo"><h3>' + c.t + '</h3><ul>' + items.map(function (sv) {
+      return '<li><button class="sv-fila" data-sv="' + sv.id + '"><span class="sv-n"><b>' + esc(sv.nombre) + '</b>' + (sv.desc ? '<small>' + esc(sv.desc) + '</small>' : '') + '</span>' +
+        '<span class="sv-d">' + sv.dur + ' min</span><span class="sv-p">' + cop(sv.precio) + '</span></button></li>';
+    }).join('') + '</ul></div>';
+  }).join('');
   var hrs = [[1, 'Lunes a viernes', '9:00 am – 7:00 pm'], [6, 'Sábado', '8:00 am – 2:00 pm'], [0, 'Domingo', 'Cerrado']].map(function (r) {
     var on = (r[0] === 1 && dow >= 1 && dow <= 5) || r[0] === dow; return '<tr class="' + (on ? 'now' : '') + '"><td>' + r[1] + (on ? ' · hoy' : '') + '</td><td>' + r[2] + '</td></tr>';
   }).join('');
@@ -52,14 +60,15 @@ function renderC() {
   document.getElementById('app').innerHTML =
     '<a class="skip" href="#equipo">Saltar a los barberos</a>' +
     '<header class="nav gut"><div class="in"><a class="mark" href="#">' + logoSvg + '<b>Tauros</b><span>Barbería</span></a>' +
-    '<nav class="links" aria-label="Secciones"><a href="#equipo">Barberos</a><a href="#visita">Ubicación</a><a href="/admin" title="Panel de administración">Admin</a></nav>' +
+    '<nav class="links" aria-label="Secciones"><a href="#equipo">Barberos</a><a href="#servicios">Servicios</a><a href="#visita">Ubicación</a><a href="/admin" title="Panel de administración">Admin</a></nav>' +
     '<button class="menu-btn" id="menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu-movil"><span></span><span></span></button></div>' +
-    '<div class="menu-movil" id="menu-movil" hidden><nav aria-label="Menú"><a href="#equipo">Barberos</a><a href="#visita">Ubicación y horario</a><a class="menu-admin" href="/admin">Acceso administrador</a></nav></div></header>' +
+    '<div class="menu-movil" id="menu-movil" hidden><nav aria-label="Menú"><a href="#equipo">Barberos</a><a href="#servicios">Servicios y precios</a><a href="#visita">Ubicación y horario</a><a class="menu-admin" href="/admin">Acceso administrador</a></nav></div></header>' +
 
     '<main id="contenido"><section class="intro gut"><div class="in">' +
     '<h1>Elige tu barbero.</h1><p class="sub">Toca su foto y aparta tu hora. Sin llamadas, sin filas.</p></div></section>' +
     '<section class="gut" id="equipo" aria-label="Barberos"><div class="in"><div class="team">' + team + '</div></div></section>' +
 
+    '<section class="gut" id="servicios"><div class="in"><h2 class="h-mid">Servicios y precios</h2><p class="sv-nota">Toca un servicio para agendarlo. Pagas en la barbería: ' + esc(N.pagos) + '.</p><div class="sv-menu">' + menuSv + '</div></div></section>' +
     '<section class="sec gut" id="visita"><div class="in"><h2 class="h-mid">Ubicación y horario</h2><div class="visit">' +
     '<div><h3>Dónde estamos</h3><address>' + esc(N.direccion) + '<br>' + esc(N.ciudad) + ', Santander</address><p style="margin-top:10px">' + esc(N.telefono) + ' · ' + esc(N.pagos) + '</p></div>' +
     '<div><h3>Horario</h3><table>' + hrs + '</table></div></div>' +
@@ -85,6 +94,7 @@ function renderC() {
 
   /* Eventos */
   document.querySelectorAll('[data-b]').forEach(function (x) { x.onclick = function () { abrirReserva(+x.dataset.b); }; });
+  document.querySelectorAll('[data-sv]').forEach(function (x) { x.onclick = function () { abrirReserva(null, +x.dataset.sv); }; });
   var vm = document.getElementById('ver-mapa');
   if (vm) vm.addEventListener('click', function () {
     var box = document.getElementById('mapa'), f = document.createElement('iframe');
