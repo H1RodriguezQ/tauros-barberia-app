@@ -49,7 +49,7 @@ function renderC() {
     var items = DB.servicios.filter(function (sv) { return sv.cat === c.id && sv.activo; });
     if (!items.length) return '';
     return '<div class="sv-grupo"><h3>' + c.t + '</h3><ul>' + items.map(function (sv) {
-      return '<li><button class="sv-fila" data-sv="' + sv.id + '"><span class="sv-n"><b>' + esc(sv.nombre) + '</b>' + (sv.desc ? '<small>' + esc(sv.desc) + '</small>' : '') + '</span>' +
+      return '<li><button class="sv-fila" data-carta="' + sv.id + '"><span class="sv-n"><b>' + esc(sv.nombre) + '</b>' + (sv.desc ? '<small>' + esc(sv.desc) + '</small>' : '') + '</span>' +
         '<span class="sv-d">' + sv.dur + ' min</span><span class="sv-p">' + cop(sv.precio) + '</span></button></li>';
     }).join('') + '</ul></div>';
   }).join('');
@@ -68,7 +68,7 @@ function renderC() {
     '<h1>Elige tu barbero.</h1><p class="sub">Toca su foto y aparta tu hora. Sin llamadas, sin filas.</p></div></section>' +
     '<section class="gut" id="equipo" aria-label="Barberos"><div class="in"><div class="team">' + team + '</div></div></section>' +
 
-    '<section class="gut" id="servicios"><div class="in"><h2 class="h-mid">Servicios y precios</h2><p class="sv-nota">Toca un servicio para agendarlo. Pagas en la barbería: ' + esc(N.pagos) + '.</p><div class="sv-menu">' + menuSv + '</div></div></section>' +
+    '<section class="gut" id="servicios"><div class="in"><h2 class="h-mid">Servicios y precios</h2><p class="sv-nota">Toca un servicio para agendarlo; en la reserva puedes sumar otros. Pagas en la barbería: ' + esc(N.pagos) + '.</p><div class="sv-menu">' + menuSv + '</div></div></section>' +
     '<section class="sec gut" id="visita"><div class="in"><h2 class="h-mid">Ubicación y horario</h2><div class="visit">' +
     '<div><h3>Dónde estamos</h3><address>' + esc(N.direccion) + '<br>' + esc(N.ciudad) + ', Santander</address><p style="margin-top:10px">' + esc(N.telefono) + ' · ' + esc(N.pagos) + '</p></div>' +
     '<div><h3>Horario</h3><table>' + hrs + '</table></div></div>' +
@@ -94,7 +94,7 @@ function renderC() {
 
   /* Eventos */
   document.querySelectorAll('[data-b]').forEach(function (x) { x.onclick = function () { abrirReserva(+x.dataset.b); }; });
-  document.querySelectorAll('[data-sv]').forEach(function (x) { x.onclick = function () { abrirReserva(null, +x.dataset.sv); }; });
+  document.querySelectorAll('[data-carta]').forEach(function (x) { x.onclick = function () { abrirReserva(null, +x.dataset.carta); }; });
   var vm = document.getElementById('ver-mapa');
   if (vm) vm.addEventListener('click', function () {
     var box = document.getElementById('mapa'), f = document.createElement('iframe');
@@ -120,7 +120,7 @@ var st = null;
 var PASOS = ['Barbero', 'Servicio', 'Día y hora', 'Tus datos', 'Listo'];
 
 function abrirReserva(bid, svId) {
-  st = { bid: bid || null, step: bid ? 1 : 0, sv: svId || null, fecha: null, hora: null, nombre: '', tel: '', acepta: false, error: '', cita: null, cargando: false, enviando: false, last: null, recienAbierto: true, origen: document.activeElement };
+  st = { bid: bid || null, step: bid ? 1 : 0, svs: svId ? [svId] : [], fecha: null, hora: null, nombre: '', tel: '', acepta: false, error: '', cita: null, cargando: false, enviando: false, last: null, recienAbierto: true, origen: document.activeElement };
   document.body.style.overflow = 'hidden';
   dibujar();
 }
@@ -155,7 +155,7 @@ async function confirmar() {
   if (!st.acepta) { mal('f-a', 'e-a', 'Debes autorizar el uso de tus datos para reservar.'); return; }
   st.enviando = true; dibujar();
   try {
-    st.cita = await reservar(st.bid, st.sv, st.fecha, st.hora, st.nombre, normalizarCelular(st.tel), st.acepta);
+    st.cita = await reservar(st.bid, st.svs, st.fecha, st.hora, st.nombre, normalizarCelular(st.tel), st.acepta);
     st.cita.cliente_nombre = st.nombre;
     st.step = 4;
   } catch (e) {
@@ -167,6 +167,7 @@ async function confirmar() {
     }
     if (cod === 'BARBERO_NO_DISPONIBLE') { await cargarCatalogo(); st.bid = null; st.step = 0; }
     if (cod === 'AUTORIZACION_REQUERIDA') st.acepta = false;
+    if (cod === 'VARIOS_NO_DISPONIBLE' || cod === 'SERVICIO_NO_DISPONIBLE') { await cargarCatalogo(); st.step = 1; }
   }
   if (st) { st.enviando = false; dibujar(); }
 }
@@ -175,7 +176,7 @@ function dibujar() {
   if (!st) return;
   var dir = st.last === null ? '' : (st.step > st.last ? 'fwd' : (st.step < st.last ? 'back' : ''));
   var celebrar = st.step === 4 && st.last === 3; st.last = st.step;
-  var b = st.bid ? B(st.bid) : null, si = b ? S(b) : null, sv = st.sv ? SV(st.sv) : null, body = '', foot = '';
+  var b = st.bid ? B(st.bid) : null, si = b ? S(b) : null, svs = st.svs.map(SV).filter(Boolean), sv = svs.length ? { nombre: svs.map(function (x) { return x.nombre; }).join(' + '), precio: svs.reduce(function (t, x) { return t + x.precio; }, 0), dur: svs.reduce(function (t, x) { return t + x.dur; }, 0) } : null, body = '', foot = '';
 
   if (st.step === 0) {
     body = '<div><div class="lbl">¿Con quién te quieres sentar?</div><div class="opts">' + activos().map(function (x) {
@@ -185,13 +186,13 @@ function dibujar() {
     if (st.error) body += '<div class="alert" role="alert">' + st.error + '</div>';
     body += '<div class="trust"><span>Sin pagar por adelantado</span><span>Sin crear cuenta</span><span>Cancelas gratis</span></div>';
   } else if (st.step === 1) {
-    body = '<div><div class="lbl">¿Qué te vas a hacer?</div>' + CATS.map(function (c) {
+    body = '<div><div class="lbl">¿Qué te vas a hacer?</div><p class="lbl-sub">Puedes elegir varios, por ejemplo corte + cejas (máximo 4).</p>' + CATS.map(function (c) {
       var l = DB.servicios.filter(function (s) { return s.cat === c.id && s.activo; }); if (!l.length) return '';
       return '<div class="group" style="margin-bottom:14px"><h4>' + c.t + '</h4><div class="opts">' + l.map(function (s) {
-        return '<button class="opt" data-sv="' + s.id + '" aria-pressed="' + (s.id === st.sv) + '">' + ICON[c.ic] + '<span><b>' + esc(s.nombre) + '</b><small>' + s.dur + ' min</small></span><span class="p">' + cop(s.precio) + '</span></button>';
+        return '<button class="opt" data-sv="' + s.id + '" aria-pressed="' + (st.svs.indexOf(s.id) > -1) + '">' + ICON[c.ic] + '<span><b>' + esc(s.nombre) + '</b><small>' + s.dur + ' min</small></span><span class="p">' + cop(s.precio) + '</span></button>';
       }).join('') + '</div></div>';
     }).join('') + '</div>';
-    foot = '<button class="btn btn-line" id="k-b1">Atrás</button><div style="display:flex;align-items:center;gap:14px"><div class="tot">' + (sv ? 'Total<b>' + cop(sv.precio) + '</b>' : '') + '</div><button class="btn btn-ink" id="k-n1" ' + (sv ? '' : 'disabled') + '>Continuar</button></div>';
+    foot = '<button class="btn btn-line" id="k-b1">Atrás</button><div style="display:flex;align-items:center;gap:14px"><div class="tot">' + (sv ? 'Total · ' + sv.dur + ' min<b>' + cop(sv.precio) + '</b>' : '') + '</div><button class="btn btn-ink" id="k-n1" ' + (sv ? '' : 'disabled') + '>Continuar</button></div>';
   } else if (st.step === 2) {
     var ds = diasDisponibles(b.id);
     body = '<div><div class="lbl">¿Qué día?</div><div class="days" role="group" aria-label="Elige el día">' + ds.map(function (x) {
@@ -212,7 +213,7 @@ function dibujar() {
     }
     foot = '<button class="btn btn-line" id="k-b2">Atrás</button><button class="btn btn-ink" id="k-n2" ' + (st.hora ? '' : 'disabled') + '>Continuar' + (st.hora ? ' · ' + h12(st.hora) : '') + '</button>';
   } else if (st.step === 3) {
-    body = '<dl class="recap"><dt>Servicio</dt><dd>' + esc(sv.nombre) + '</dd><dt>Barbero</dt><dd>' + esc(b.nombre) + '</dd><dt>Día</dt><dd>' + fl(st.fecha) + '</dd><dt>Hora</dt><dd>' + h12(st.hora) + '</dd><dt>Precio</dt><dd>' + cop(sv.precio) + '</dd></dl>';
+    body = '<dl class="recap"><dt>' + (svs.length > 1 ? 'Servicios' : 'Servicio') + '</dt><dd>' + esc(sv.nombre) + '</dd><dt>Duración</dt><dd>' + sv.dur + ' min</dd><dt>Barbero</dt><dd>' + esc(b.nombre) + '</dd><dt>Día</dt><dd>' + fl(st.fecha) + '</dd><dt>Hora</dt><dd>' + h12(st.hora) + '</dd><dt>Total</dt><dd>' + cop(sv.precio) + '</dd></dl>';
     if (st.error) body += '<div class="alert" role="alert">' + st.error + '</div>';
     body += '<div class="field"><label for="f-n">¿Cómo te llamas?</label><input id="f-n" autocomplete="name" maxlength="80" required aria-describedby="e-n" value="' + esc(st.nombre) + '" placeholder="Tu nombre"><span class="err" id="e-n" aria-live="polite"></span></div>' +
       '<div class="field"><label for="f-t">Celular</label><input id="f-t" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" required aria-describedby="h-t e-t" value="' + esc(st.tel) + '" placeholder="300 123 4567"><span class="err" id="e-t" aria-live="polite"></span><span class="hint" id="h-t">Solo lo usamos para confirmarte o avisarte si hay que mover tu turno.</span></div>' +
@@ -223,7 +224,7 @@ function dibujar() {
     var c = st.cita;
     body = '<div class="receipt" role="status"><span class="stamp">Confirmado</span><div class="r-h"><b>Tauros</b><span>' + esc(NEGOCIO.direccion.split(',')[0]) + ' · ' + esc(NEGOCIO.telefono) + '</span></div><div class="r-ok">¡Te esperamos!</div>' +
       '<dl><dt>N.º</dt><dd>TB-' + c.id + '</dd><dt>Cliente</dt><dd>' + esc(c.cliente_nombre) + '</dd><dt>Barbero</dt><dd>' + esc(b.nombre) + '</dd><dt>Silla</dt><dd>' + pad2(si.n) + '</dd><dt>Día</dt><dd>' + fl(c.fecha) + '</dd><dt>Hora</dt><dd>' + h12(c.hora_inicio) + ' – ' + h12(c.hora_fin) + '</dd></dl>' +
-      '<div class="r-t"><span>' + esc(sv.nombre) + '</span><span>' + cop(sv.precio) + '</span></div><div class="r-f">Pagas en la barbería.<br>Toma captura de este recibo y llega 5 min antes.</div></div>';
+      svs.map(function (x) { return '<div class="r-l"><span>' + esc(x.nombre) + '</span><span>' + cop(x.precio) + '</span></div>'; }).join('') + '<div class="r-t"><span>Total</span><span>' + cop(sv.precio) + '</span></div><div class="r-f">Pagas en la barbería.<br>Toma captura de este recibo y llega 5 min antes.</div></div>';
     foot = '<span></span><button class="btn btn-ink" id="k-d">Listo</button>';
   }
 
@@ -240,7 +241,14 @@ function dibujar() {
   q('k-c').onclick = cerrarReserva;
   q('scr').addEventListener('click', function (e) { if (e.target.id === 'scr') cerrarReserva(); });
   document.querySelectorAll('[data-pb]').forEach(function (x) { x.onclick = function () { st.bid = +x.dataset.pb; st.error = ''; st.step = 1; dibujar(); }; });
-  document.querySelectorAll('[data-sv]').forEach(function (x) { x.onclick = function () { st.sv = +x.dataset.sv; dibujar(); }; });
+  document.querySelectorAll('.sheet [data-sv]').forEach(function (x) {
+    x.onclick = function () {
+      var id = +x.dataset.sv, i = st.svs.indexOf(id);
+      if (i > -1) st.svs.splice(i, 1); else if (st.svs.length < 4) st.svs.push(id);
+      st.error = ''; st.hora = null; dibujar();
+      var b2 = document.querySelector('.sheet [data-sv="' + id + '"]'); if (b2) b2.focus({ preventScroll: true });
+    };
+  });
   document.querySelectorAll('.day').forEach(function (x) { x.onclick = function () { elegirDia(x.dataset.f); }; });
   document.querySelectorAll('.slot').forEach(function (x) { x.onclick = function () { st.hora = x.dataset.h; st.error = ''; dibujar(); }; });
   if (q('k-b1')) q('k-b1').onclick = function () { st.step = 0; dibujar(); };

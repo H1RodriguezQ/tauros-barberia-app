@@ -56,6 +56,8 @@ async function cargarCatalogo() {
 function B(id) { return DB.barberos.find(function (b) { return b.id === id; }); }
 function S(b) { return DB.sillas.find(function (s) { return s.id === b.silla_id; }) || { n: 0, nombre: 'Sin silla' }; }
 function SV(id) { return DB.servicios.find(function (s) { return s.id === id; }); }
+/* Servicios de una cita: el principal más los extra (migración 03) */
+function serviciosDeCita(c) { return [c.servicio_id].concat(c.servicios_extra || []).map(SV).filter(Boolean); }
 function hor(bid, fecha) {
   var d = new Date(fecha + 'T12:00').getDay();
   return DB.horarios.find(function (h) { return h.barbero_id === bid && h.dia_semana === d; });
@@ -101,18 +103,24 @@ var ERRORES = {
   CONTACTO_INVALIDO: 'Escribe un celular colombiano válido de 10 dígitos que empiece por 3.',
   AUTORIZACION_REQUERIDA: 'Para reservar necesitamos que autorices el uso de tus datos.',
   LIMITE_RESERVAS: 'Ya tienes 2 citas pendientes con este celular. Si necesitas otra, llámanos.',
-  DEMASIADAS_SOLICITUDES: 'Estamos recibiendo muchas reservas en este momento. Intenta de nuevo en unos minutos.'
+  DEMASIADAS_SOLICITUDES: 'Estamos recibiendo muchas reservas en este momento. Intenta de nuevo en unos minutos.',
+  VARIOS_NO_DISPONIBLE: 'Por ahora solo se puede reservar un servicio a la vez. Deja uno y agrega el otro en la barbería.'
 };
 function codigoError(e) {
   var msg = (e && (e.message || e.details)) || '';
   return Object.keys(ERRORES).find(function (k) { return msg.indexOf(k) > -1; }) || null;
 }
 
-async function reservar(bid, servicioId, fecha, hora, nombre, contacto, acepta) {
-  var r = await sb.rpc('reservar_cita', {
-    p_barbero: bid, p_servicio: servicioId, p_fecha: fecha, p_hora: hora,
-    p_nombre: nombre, p_contacto: contacto, p_acepta: acepta === true
-  });
+async function reservar(bid, servicios, fecha, hora, nombre, contacto, acepta) {
+  servicios = [].concat(servicios);
+  var datos = { p_barbero: bid, p_fecha: fecha, p_hora: hora, p_nombre: nombre, p_contacto: contacto, p_acepta: acepta === true };
+  var r;
+  if (servicios.length === 1) r = await sb.rpc('reservar_cita', Object.assign({ p_servicio: servicios[0] }, datos));
+  else {
+    r = await sb.rpc('reservar_cita_multi', Object.assign({ p_servicios: servicios }, datos));
+    // Si la base de datos aún no tiene la migración 03, se avisa en vez de fallar en silencio
+    if (r.error && r.error.code === 'PGRST202') r.error = { message: 'VARIOS_NO_DISPONIBLE' };
+  }
   if (r.error) throw r.error;
   var c = r.data[0];
   return { id: c.id, fecha: c.fecha, hora_inicio: hhmm(c.hora_inicio), hora_fin: hhmm(c.hora_fin) };

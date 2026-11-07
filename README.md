@@ -98,7 +98,8 @@ Una aplicación web con dos módulos:
 - Botón **"Sus trabajos"** que lleva al **Instagram de cada barbero** (se configura desde el panel; requiere la migración `migraciones/02-instagram.sql`).
 - **Servicios y precios** en una carta sencilla por categoría (cortes, barba, extras) con duración; tocar un servicio abre la reserva con ese servicio.
 - **Ubicación y horario** con mapa de Google Maps que solo se carga si el cliente lo pide, y botón "Cómo llegar".
-- **Reserva en pasos:** barbero → servicio → día → hora → datos (los precios y la duración se ven al elegir el servicio).
+- **Reserva en pasos:** barbero → servicios → día → hora → datos.
+  - Se pueden **combinar hasta 4 servicios** en una misma cita (ej. corte + cejas): la cita dura la suma y el total se ve antes de confirmar (migración `03-varios-servicios.sql`).
   - Horas **libres en verde** y **ocupadas en gris**.
   - Solo se ofrecen horas donde el servicio **cabe completo** (un "Corte + barba" ocupa 60 minutos).
   - Nombre y **celular colombiano obligatorios**, con formato automático (300 123 4567).
@@ -234,7 +235,9 @@ tauros-barberia-app/
 ├── encuesta/           Encuesta de opinión del sitio (módulo aparte)
 ├── supabase.sql        Tablas, reglas de seguridad, funciones y datos iniciales (instalación nueva)
 ├── migraciones/
-│   └── 01-seguridad.sql  Actualiza una base ya creada con la versión anterior
+│   ├── 01-seguridad.sql         Actualiza una base ya creada con la versión anterior
+│   ├── 02-instagram.sql         Instagram de cada barbero
+│   └── 03-varios-servicios.sql  Varios servicios en una misma cita (ej. corte + cejas)
 └── vercel.json         URLs limpias (/admin) y cabeceras de seguridad
 ```
 

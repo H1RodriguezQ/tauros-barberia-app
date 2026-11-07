@@ -103,7 +103,7 @@ function agenda() {
   if (!q('am')) return;
   var f = A.fecha, cols = DB.barberos.filter(function (b) { return A.fb === 'todos' || b.id === +A.fb; }), dayC = A.citas;
   var cnt = function (e) { return dayC.filter(function (c) { return c.estado === e; }).length; };
-  var ing = dayC.filter(function (c) { return c.estado !== 'cancelada'; }).reduce(function (a, c) { var s = SV(c.servicio_id); return a + (s ? s.precio : 0); }, 0);
+  var ing = dayC.filter(function (c) { return c.estado !== 'cancelada'; }).reduce(function (a, c) { return a + serviciosDeCita(c).reduce(function (t, s) { return t + s.precio; }, 0); }, 0);
   /* La agenda va de la primera entrada a la última salida del día */
   var hs = cols.map(function (b) { return hor(b.id, f); }).filter(function (h) { return h && h.activo; });
   var start = hs.length ? Math.floor(Math.min.apply(null, hs.map(function (h) { return m2(h.hora_inicio); })) / 60) * 60 : 8 * 60;
@@ -122,9 +122,9 @@ function agenda() {
   }
   cols.forEach(function (b, i) {
     dayC.filter(function (c) { return c.barbero_id === b.id; }).sort(function (a) { return a.estado === 'cancelada' ? -1 : 1; }).forEach(function (c) {
-      var r0 = Math.floor((m2(c.hora_inicio) - start) / step), span = Math.max(1, Math.ceil((m2(c.hora_fin) - m2(c.hora_inicio)) / step)), s = SV(c.servicio_id);
+      var r0 = Math.floor((m2(c.hora_inicio) - start) / step), span = Math.max(1, Math.ceil((m2(c.hora_fin) - m2(c.hora_inicio)) / step)), s = serviciosDeCita(c);
       if (r0 < 0 || r0 >= R) return;
-      g += '<button class="appt ' + c.estado + (esNueva(c) ? ' nueva' : '') + '" data-c="' + c.id + '" style="grid-column:' + (i + 2) + ';grid-row:' + (r0 + 2) + ' / span ' + span + '"><b>' + esc(c.cliente_nombre) + '</b><span>' + esc(s ? s.nombre : 'Servicio') + ' · ' + h12(c.hora_inicio) + '</span></button>';
+      g += '<button class="appt ' + c.estado + (esNueva(c) ? ' nueva' : '') + '" data-c="' + c.id + '" style="grid-column:' + (i + 2) + ';grid-row:' + (r0 + 2) + ' / span ' + span + '"><b>' + esc(c.cliente_nombre) + '</b><span>' + esc(s.length ? s.map(function (x) { return x.nombre; }).join(' + ') : 'Servicio') + ' · ' + h12(c.hora_inicio) + '</span></button>';
     });
   });
   var nm = new Date().getHours() * 60 + new Date().getMinutes();
@@ -148,9 +148,9 @@ function agenda() {
 }
 
 function citaDlg(id) {
-  var c = A.citas.find(function (x) { return x.id === id; }), b = B(c.barbero_id), sv = SV(c.servicio_id);
+  var c = A.citas.find(function (x) { return x.id === id; }), b = B(c.barbero_id), sv = serviciosDeCita(c);
   q('layer').innerHTML = '<div class="dlg-bg" id="db"><div class="dlg" role="dialog" aria-modal="true" aria-label="Detalle de la cita"><h2>' + esc(c.cliente_nombre) + '</h2>' +
-    '<dl class="recap"><dt>Servicio</dt><dd>' + esc(sv ? sv.nombre + ' · ' + cop(sv.precio) : '') + '</dd><dt>Barbero</dt><dd>' + esc(b ? b.nombre : '') + '</dd><dt>Día</dt><dd>' + fl(c.fecha) + '</dd><dt>Hora</dt><dd>' + h12(c.hora_inicio) + ' – ' + h12(c.hora_fin) + '</dd>' +
+    '<dl class="recap"><dt>' + (sv.length > 1 ? 'Servicios' : 'Servicio') + '</dt><dd>' + esc(sv.map(function (x) { return x.nombre; }).join(' + ') + ' · ' + cop(sv.reduce(function (t, x) { return t + x.precio; }, 0))) + '</dd><dt>Barbero</dt><dd>' + esc(b ? b.nombre : '') + '</dd><dt>Día</dt><dd>' + fl(c.fecha) + '</dd><dt>Hora</dt><dd>' + h12(c.hora_inicio) + ' – ' + h12(c.hora_fin) + '</dd>' +
     '<dt>Celular</dt><dd>' + (c.cliente_contacto ? esc(formatoCelular(c.cliente_contacto) || c.cliente_contacto) : 'No dejó') + '</dd><dt>Estado</dt><dd>' + cap(c.estado) + '</dd><dt>Comprobante</dt><dd>TB-' + c.id + '</dd></dl>' +
     '<div class="acts">' + (c.estado === 'confirmada' ? '<button class="btn btn-red" id="x-c">Cancelar cita</button><button class="btn btn-ink" id="x-d">Marcar atendida</button>' : '<button class="btn btn-line" id="x-z">Cerrar</button>') + '</div></div></div>';
   q('db').addEventListener('click', function (e) { if (e.target.id === 'db') cerrarDlg(); });
