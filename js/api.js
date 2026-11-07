@@ -39,7 +39,8 @@ async function cargarCatalogo() {
   DB.sillas = r[0].data.map(function (s) { return Object.assign({}, s, { n: s.numero }); });
   DB.barberos = r[1].data.map(function (b, i) {
     return Object.assign({}, b, {
-      look: LOOKS[i % LOOKS.length],
+      // ilustracion (opcional, migración 04) elige el peinado del dibujo; si no, se asigna uno por orden
+      look: b.ilustracion ? Object.assign({}, LOOKS[i % LOOKS.length], { hair: b.ilustracion, beard: false, mustache: false }) : LOOKS[i % LOOKS.length],
       instagram: usuarioInstagram(b.instagram),
       quote: b.frase || '',
       pide: (b.especialidad || '').split(/,| y /).map(function (x) { return x.trim(); }).filter(Boolean).slice(0, 2)

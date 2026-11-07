@@ -34,7 +34,7 @@ var ICON={
 var SKIN=['#c68a5e','#8a5636','#e3b68c','#a46a43'];
 function portrait(b,small){
   if(b.foto_url)return '<img src="'+esc(b.foto_url)+'" alt="Foto de '+esc(b.nombre)+'" loading="lazy">';
-  var p=b.look||{skin:0,hair:'fade',beard:false,bg:'#f1e3c4'},s=SKIN[p.skin],ink='#1a1a2e',hair='',beard='';
+  var p=b.look||{skin:0,hair:'fade',beard:false,bg:'#f1e3c4'},s=SKIN[p.skin],ink='#1a1a2e',hair='',beard='',back='';
   if(p.hair==='fade')hair='<path d="M38 52c0-16 10-25 22-25s22 9 22 25c-3-5-8-8-22-8s-19 3-22 8z" fill="'+ink+'"/><path d="M38 52c0 4 1 7 2 9M82 52c0 4-1 7-2 9" stroke="'+ink+'" stroke-width="2" opacity=".35"/>';
   if(p.hair==='rizo')hair='<g fill="'+ink+'">'+[[42,44],[50,36],[60,33],[70,36],[78,44],[46,52],[74,52],[56,40],[66,40]].map(function(c){return '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="8"/>';}).join('')+'</g>';
   if(p.hair==='peinado')hair='<path d="M37 56c-2-20 9-30 25-30 12 0 21 7 21 17-6-6-16-6-26-3-9 3-14 9-20 16z" fill="'+ink+'"/>';
@@ -45,11 +45,12 @@ function portrait(b,small){
   if(p.hair==='clasico')hair='<path d="M37 56c-2-19 8-29 24-29 13 0 22 8 21 20-2-5-6-8-11-9-2 4-6 6-12 7-9 1-16 5-22 11z" fill="'+ink+'"/><path d="M64 29c2 5 4 10 7 13" stroke="#fffdf9" stroke-width="1.6" opacity=".7" fill="none"/>';
   if(p.hair==='diseno')hair='<path d="M38 52c0-16 10-25 22-25s22 9 22 25c-3-5-8-8-22-8s-19 3-22 8z" fill="'+ink+'"/><path d="M43 44l10-6M46 49l10-6M74 38l5 7" stroke="#fffdf9" stroke-width="1.8" stroke-linecap="round"/>';
   if(p.hair==='rizofade')hair='<path d="M39 56c0-6 1-11 3-14M81 56c0-6-1-11-3-14" stroke="'+ink+'" stroke-width="3" opacity=".4"/><g fill="'+ink+'">'+[[46,41],[53,34],[61,31],[69,34],[75,41],[57,39],[65,39],[50,45],[71,45]].map(function(c){return '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="6.5"/>';}).join('')+'</g>';
+  if(p.hair==='largo'){back='<path d="M33 62c-3-24 9-38 27-38s30 14 27 38c-1 12 1 22 6 30-9 5-21 4-30 0-8 4-23 5-36 0 5-8 7-18 6-30z" fill="'+ink+'"/>';hair='<path d="M38 56c-1-19 9-30 22-30 14 0 23 11 22 30-5-9-12-14-20-15-5 7-13 12-24 15z" fill="'+ink+'"/><circle cx="38" cy="70" r="2.4" fill="#c8962a"/><circle cx="82" cy="70" r="2.4" fill="#c8962a"/>';}
   if(p.beard)beard='<path d="M40 64c1 16 9 26 20 26s19-10 20-26c-3 5-6 7-9 7-3-3-7-4-11-4s-8 1-11 4c-3 0-6-2-9-7z" fill="'+ink+'"/>';
   if(p.mustache)beard+='<path d="M50 74c4-3 7-3 10-1 3-2 6-2 10 1-3 2-7 2-10 1-3 1-7 1-10-1z" fill="'+ink+'"/>';
   return '<svg viewBox="0 0 120 120" role="img" aria-label="Ilustración de '+esc(b.nombre)+'"><rect width="120" height="120" fill="'+p.bg+'"/>'+
     (small?'':'<circle cx="96" cy="22" r="10" fill="none" stroke="'+ink+'" stroke-width="1.5" opacity=".15"/><path d="M8 100 22 86" stroke="'+ink+'" stroke-width="1.5" opacity=".15"/>')+
-    '<path d="M18 120c3-22 20-32 42-32s39 10 42 32z" fill="'+ink+'"/><path d="M48 88h24l-12 16z" fill="#fffdf9"/><path d="M52 90l8 10 8-10" fill="none" stroke="#c8962a" stroke-width="2"/>'+
+    back+'<path d="M18 120c3-22 20-32 42-32s39 10 42 32z" fill="'+ink+'"/><path d="M48 88h24l-12 16z" fill="#fffdf9"/><path d="M52 90l8 10 8-10" fill="none" stroke="#c8962a" stroke-width="2"/>'+
     '<rect x="52" y="74" width="16" height="16" rx="6" fill="'+s+'"/><ellipse cx="38.5" cy="60" rx="4" ry="6" fill="'+s+'"/><ellipse cx="81.5" cy="60" rx="4" ry="6" fill="'+s+'"/>'+
     '<ellipse cx="60" cy="58" rx="21" ry="25" fill="'+s+'"/>'+beard+hair+'</svg>';
 }

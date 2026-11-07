@@ -6,7 +6,7 @@
 --    1. En Supabase abre  SQL Editor  →  New query
 --    2. Pega TODO este archivo y presiona  Run
 --    3. Sigue los pasos del final (crear el usuario administrador)
---    4. Ejecuta también migraciones/02-instagram.sql y migraciones/03-varios-servicios.sql
+--    4. Ejecuta también, en orden, las migraciones 02, 03 y 04 de la carpeta migraciones/
 --
 --  Se puede volver a ejecutar: borra las tablas y las crea de nuevo
 --  (¡ojo! también borra las citas que existan).

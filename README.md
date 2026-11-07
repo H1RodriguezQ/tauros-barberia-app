@@ -237,7 +237,8 @@ tauros-barberia-app/
 ├── migraciones/
 │   ├── 01-seguridad.sql         Actualiza una base ya creada con la versión anterior
 │   ├── 02-instagram.sql         Instagram de cada barbero
-│   └── 03-varios-servicios.sql  Varios servicios en una misma cita (ej. corte + cejas)
+│   ├── 03-varios-servicios.sql  Varios servicios en una misma cita (ej. corte + cejas)
+│   └── 04-barbera.sql           Nueva barbera (silla 5) e ilustración con pelo largo
 └── vercel.json         URLs limpias (/admin) y cabeceras de seguridad
 ```
 
