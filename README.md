@@ -76,7 +76,7 @@ Una aplicación web con dos módulos:
 |---|---|
 | ![Servicios](docs/capturas/02-servicios.png) | ![Barberos](docs/capturas/03-barberos.png) |
 
-| Reserva: elegir día y hora | En el celular |
+| Reserva: corte + cejas, elegir la hora | En el celular |
 |---|---|
 | ![Reserva](docs/capturas/04-reserva-horas.png) | <img src="docs/capturas/05-celular.png" width="260" alt="Vista en celular"> |
 
