@@ -632,3 +632,14 @@ html.sin-mov .portada #equipo .bcard:hover{transform:none}
 .portada #equipo .bcard .bd{flex:1}
 .portada #equipo .bcard .acc{flex-direction:column;margin-top:auto;padding-top:12px}
 .portada #equipo .bcard .acc .btn{width:100%;flex:none}
+
+/* Panel en celular: las pestañas ocupan una sola fila a todo el ancho */
+@media (max-width:760px){
+  .abar .in{gap:8px}
+  .abar .mark{flex:1}
+  .tabs{order:3;flex:1 1 100%;flex-wrap:nowrap;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .tabs button{padding:8px 4px;font-size:13px;text-align:center;white-space:nowrap}
+  .abar .user{order:2;margin-left:0;font-size:12px;gap:10px}
+  .abar .user{font-size:0}
+  .abar .user .lnk{font-size:12px}
+}
