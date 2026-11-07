@@ -12,7 +12,8 @@
 <p align="center">
   <a href="https://tauros-barberia-app.vercel.app"><b>🌐 Ver el sitio publicado</b></a> ·
   <a href="https://tauros-barberia-app.vercel.app/admin"><b>🔐 Panel de administración</b></a> ·
-  <a href="docs/demo-tauros.mp4"><b>🎬 Video de demostración</b></a>
+  <a href="docs/demo-tauros.mp4"><b>🎬 Video de demostración</b></a> ·
+  <a href="https://www.figma.com/design/TZktbpT8ZhRpHG4ZFdqGgi"><b>🎨 Diseño en Figma</b></a>
 </p>
 
 <p align="center">
